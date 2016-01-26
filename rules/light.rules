@@ -1,0 +1,181 @@
+import org.openhab.core.library.types.*
+import org.openhab.core.library.items.*
+import org.openhab.core.items.*
+import org.openhab.core.types.*
+
+import org.eclipse.xtext.xbase.lib.*
+
+import java.lang.*
+
+var int lightningTimeout = 0
+
+val Functions$Function1 mustIlluminate = [ GroupItem room |
+  var roomSwitch = room.members.get( 0 ) as GroupItem
+  var lux = room.members.get( 4 ).state
+  var luxThreshold = ( room.members.get( 5 ).state as DecimalType ).intValue()
+  val isOff = newArrayList( true )
+  roomSwitch.members.forEach[ item | isOff.set( 0, isOff.get( 0 ) && ( item.state == Uninitialized || item.state == OFF ) ) ]
+  return activeRoom.state.equals( room.name ) && isOff.get( 0 ) && ( lux == Uninitialized || lux <= luxThreshold )
+]
+
+val Functions$Function1 mustDarken = [ GroupItem room |
+  var roomSwitch = room.members.get( 0 ) as GroupItem
+  var motion = room.members.get( 3 ) as ContactItem
+  var lux = room.members.get( 4 ).state
+  var luxThreshold = ( room.members.get( 6 ).state as DecimalType ).intValue()
+  val isOn = newArrayList( false )
+  roomSwitch.members.forEach[ item | isOn.set( 0, isOn.get( 0 ) || item.state == ON ) ]
+  return    !activeRoom.state.equals( room.name ) 
+         && motion.state == CLOSED
+         && isOn.get( 0 )
+         || ( lux != Uninitialized && lux > luxThreshold )
+            && isOn.get( 0 )
+]
+
+val Functions$Function2 switchRoomLight = [ GroupItem room, String switchState |
+  var roomSwitch = room.members.get( 0 ) as GroupItem
+  logInfo( "light", "Switch " + roomSwitch.name + " " + if( switchState == ON ) { ON } else { OFF } )
+  roomSwitch.members.forEach[ item |
+	logInfo( "light", "  Switch " + item.name + " " + if( switchState == ON ) { ON } else { OFF } )
+  	item.sendCommand( if( switchState == ON ) { ON } else { OFF } )
+  ]
+  return true
+]
+
+val Functions$Function2 brightnessProvider = [ GroupItem room, DimmerItem item |
+  var hourOfDay = now.getHourOfDay.intValue()
+  if(    room.name.equals( KITCHEN.name ) 
+  	  && hourOfDay >= ( cookingStart.state as DecimalType ).intValue() 
+  	  && hourOfDay < ( cookingEnd.state as DecimalType ).intValue() )
+  {
+  	return Integer::valueOf( 100 )
+  }
+  return ( brightness.state as DecimalType ).intValue()
+]
+
+val Functions$Function2 adjustBrightness = [ GroupItem room, Functions$Function2 brightnessProvider |
+  if( !activeRoom.state.equals( room.name ) ) { return false }
+  var roomSwitch = room.members.get( 0 ) as GroupItem
+  var brightnessDimmer = room.members.get( 2 ) as GroupItem
+  val isOn = newArrayList()
+  roomSwitch.members.forEach[ item | isOn.add( item.state == ON ) ]
+  brightnessDimmer.members.forEach[ item |
+  	var brightnessValue = ( brightnessProvider.apply( room, item ) as Integer ).intValue()
+  	if( ( item.state as DecimalType ).intValue() != brightnessValue && isOn.remove( 0 ) == true ) {
+      logInfo( "light", "  set brightness of " + item.name + " to " + brightnessValue )
+      var PercentType percentage = new PercentType( brightnessValue ) 
+      item.sendCommand( percentage )
+  	} 
+  ]
+  return true
+]
+
+val Functions$Function2 colorTemperatureProvider = [ GroupItem room, DimmerItem item |
+  return ( colorTemperature.state as DecimalType ).intValue()
+]
+
+val Functions$Function2 adjustColorTemperature = [ GroupItem room, Functions$Function2 colorTemperatureProvider |
+  if( !activeRoom.state.equals( room.name ) ) { return false }
+  var roomSwitch = room.members.get( 0 ) as GroupItem
+  var temperatureDimmer = room.members.get( 1 ) as GroupItem
+  val isOn = newArrayList()
+  roomSwitch.members.forEach[ item | isOn.add( item.state == ON ) ]
+  temperatureDimmer.members.forEach[ item |
+    var int temperatureValue = ( colorTemperatureProvider.apply( room, item ) as Integer ).intValue()
+  	if( ( item.state as DecimalType ).intValue() != temperatureValue && isOn.remove( 0 ) == true ) {
+      logInfo( "light", "  set color temperature of " + item.name + " to " + temperatureValue )
+      var PercentType percentage = new PercentType( temperatureValue ) 
+      item.sendCommand( percentage )
+  	}
+  ]
+  return true
+]
+
+val Functions$Function1 switchOffActiveRoomLightsIfTimeoutExceeded = [ int timeout |
+  if( activeRoom.state.equals( BED_ROOM.name ) && autoSwitchOffBedRoomLight.state == ON ) {
+    if( timeout >= ( autoSwitchOffBedRoomLightTimeout.state as DecimalType ).intValue() ) { 
+      postUpdate( activeRoom, "NONE" )
+    }
+    return timeout + 2
+  }
+  return 0
+]
+
+rule "Room Activation"
+when
+  Item activeRoom changed
+then
+  logInfo( "light", "Activate " + activeRoom.state )
+
+  ROOMS.members.forEach[ room |
+    if( mustIlluminate.apply( room ) as Boolean ) {
+      switchRoomLight.apply( room, ON )
+    }
+  ]
+  
+  lightningTimeout = 0
+end
+
+rule "Periodical Bulb Updates"
+when
+  Time cron "0/2 * * * * ?"
+then
+  if( initialization.state != ON ) { return false }
+
+  ROOMS.members.forEach[ room |
+    if( mustIlluminate.apply( room ) as Boolean ) {
+      switchRoomLight.apply( room, ON )
+    }
+  ]
+  ROOMS.members.forEach[ room |
+    if( mustDarken.apply( room ) as Boolean ) {
+      switchRoomLight.apply( room, OFF )
+    }
+  ]
+  if( brightness.state != Undefined ) {
+    ROOMS.members.forEach[ room | adjustBrightness.apply( room, brightnessProvider ) ]
+  }
+  if( colorTemperature.state != Undefined ) {
+    ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
+  }
+  lightningTimeout = switchOffActiveRoomLightsIfTimeoutExceeded.apply( lightningTimeout ) as Integer
+end
+
+rule "Brightness Calculation"
+when
+  Item sunHeight changed
+then
+  var factor = Math::min( 3.33, Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 51.85 ) ) )
+  var value = Math::max( 5, Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 18 ) * factor ), 100.0 ) ).intValue()
+  if( brightness.state != value ) {
+    logInfo( "light", "Update Brightness: " + value )
+    postUpdate( brightness, value )
+  } 
+end
+
+rule "Brightness Adjustment"
+when
+  Item brightness changed
+then
+  ROOMS.members.forEach[ room | adjustBrightness.apply( room, brightnessProvider ) ]
+end
+
+rule "Color Temperature Calculation"
+when
+  Item sunHeight changed
+then
+  var factor = Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 37 ) )
+  var value = Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 6 ) * factor ), 100.0 )
+  var temperature = ( 100.0 - Math::max( 0.0, value ) ).intValue()
+  if( colorTemperature.state != temperature ) {  	
+    logInfo( "light", "Update Color Temperature: " + temperature )
+    postUpdate( colorTemperature, temperature )
+  } 
+end
+
+rule "Color Temperature Adjustment"
+when
+  Item colorTemperature changed
+then
+  ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
+end

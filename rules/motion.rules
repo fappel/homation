@@ -1,0 +1,59 @@
+import org.openhab.core.library.types.*
+import org.openhab.core.library.items.*
+import org.openhab.core.items.*
+
+import org.eclipse.xtext.xbase.lib.*
+
+import java.lang.*
+
+val Functions$Function1 mustActivateRoom = [ GroupItem room |
+  val allOthersClosed = newArrayList( true )
+  ROOMS.members.forEach[ otherRoom |
+  	if( otherRoom != room ) {
+  	  var otherRoomClosed = ( otherRoom as GroupItem ).members.get( 3 ).state == CLOSED
+      allOthersClosed.set( 0, allOthersClosed.get( 0 ) && otherRoomClosed )
+  	}
+  ]
+  return    !activeRoom.state.equals( room.name )
+         && ( room as GroupItem ).members.get( 3 ).state == OPEN
+         && allOthersClosed.get( 0 )
+]
+
+val Functions$Function1 updateRoomActivation = [ Functions$Function1 mustActivateRoom |
+  ROOMS.members.forEach[ room |
+    if( mustActivateRoom.apply( room as GroupItem ) as Boolean ) {
+     postUpdate( activeRoom, room.name as String )
+    }
+  ]
+  return true
+]
+
+rule "Kitchen Motion"
+when
+  Item kitchenMotion changed from CLOSED to OPEN
+then
+  postUpdate( activeRoom, KITCHEN.name )
+end
+
+rule "Living Room Motion"
+when
+  Item livingRoomMotion changed from CLOSED to OPEN
+then
+  postUpdate( activeRoom, LIVING_ROOM.name )
+end
+
+rule "Bedroom Motion"
+when
+  Item bedRoomMotion changed from CLOSED to OPEN
+then
+  postUpdate( activeRoom, BED_ROOM.name )
+end
+
+rule "Activation Update"
+when
+  Time cron "0/2 * * * * ?"
+then
+  if( initialization.state != ON ) { return false }
+
+  updateRoomActivation.apply( mustActivateRoom )
+end

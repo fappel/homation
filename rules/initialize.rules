@@ -1,0 +1,29 @@
+import org.openhab.core.library.types.*
+
+rule "Initialize"
+when
+  System started
+then
+  postUpdate( sunHeight, -50.0 )
+  postUpdate( activeRoom, "NONE" )
+  postUpdate( brightness, new PercentType( 50 ) )
+  postUpdate( colorTemperature, new PercentType( 50 ) )
+  postUpdate( cookingStart, 18 )
+  postUpdate( cookingEnd, 21 )
+  postUpdate( hallLightOnThreshold, 50 )
+  postUpdate( hallLightOffThreshold, 400 )
+  postUpdate( kitchenLightOnThreshold, 50 )
+  postUpdate( kitchenLightOffThreshold, 400 )
+  postUpdate( bathRoomLightOnThreshold, 50 )
+  postUpdate( bathRoomLightOffThreshold, 400 )
+  postUpdate( livingRoomLightOnThreshold, 50 )
+  postUpdate( livingRoomLightOffThreshold, 400 )
+  postUpdate( bedRoomLightOnThreshold, 50 )
+  postUpdate( bedRoomLightOffThreshold, 400 )
+  postUpdate( autoSwitchOffBedRoomLight, ON )
+  postUpdate( autoSwitchOffBedRoomLightTimeout, 40 )
+  createTimer( now.plusSeconds( 30 ) ) [|
+    postUpdate( initialization, ON )
+    logInfo( "initialize", "Item values are initialized" )
+  ]
+end

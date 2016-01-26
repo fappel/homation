@@ -1,0 +1,122 @@
+/* General */
+Switch initialization
+
+/* Sun Data */
+Number sunHeight
+
+/* Rooms */
+Group ROOMS
+Group KITCHEN (ROOMS)
+Group LIVING_ROOM (ROOMS)
+Group BED_ROOM (ROOMS)
+
+String activeRoom
+
+Group kitchen "Küche" <kitchen>
+Group livingRoom "Wohnzimmer" <video>
+Group bedRoom "Schlafzimmer" <bedroom>
+
+/* Lights */
+Number brightness
+Number colorTemperature
+
+Group light "Alle Lampen"
+
+Group allKitchenLightSwitch (KITCHEN)
+Group allLivingRoomLightSwitch (LIVING_ROOM)
+Group allBedRoomLightSwitch (BED_ROOM)
+
+Group allColorTemperatureKitchenDimmer (KITCHEN)
+Group allColorTemperatureLivingRoomDimmer (LIVING_ROOM)
+Group allColorTemperatureBedRoomDimmer (BED_ROOM)
+
+Group allBrightnessKitchenDimmer (KITCHEN)
+Group allBrightnessLivingRoomDimmer (LIVING_ROOM)
+Group allBrightnessBedRoomDimmer (BED_ROOM)
+
+  Group lightKitchen "Küche Licht [(%s)]" <hue> (light,kitchen)
+    Group:Switch:OR(ON, OFF) kitchenCeiling "Deckenleuchte [(%s)]" <hue> (lightKitchen)
+      Switch switchKitchenCeiling "Aktivierung" <hue> (kitchenCeiling,allKitchenLightSwitch) {hue="5"}
+      Color colorKitchenCeiling "Farbe" <hue> (kitchenCeiling) {hue="5"}
+      Dimmer colorTemperatureKitchenCeiling "Farbtemperatur" <hue> (allColorTemperatureKitchenDimmer) {hue="5;colorTemperature"}
+      Dimmer dimmerKitchenCeiling "Dimmer" <hue> (kitchenCeiling,allBrightnessKitchenDimmer) {hue="5;brightness"}
+
+  Group lightLivingRoom "Wohnzimmer Licht [(%s)]" <hue> (light,livingRoom)
+    Group fanLightLivingRoom "Ventilator [(%s)]" <hue> (lightLivingRoom)   
+      Group:Switch:OR(ON, OFF) fanLightLivingRoomBulb1 "Lampe 1 [(%s)]" <hue> (fanLightLivingRoom)
+        Switch switchFanLight1 "Aktivierung" <hue> (fanLightLivingRoomBulb1,allLivingRoomLightSwitch) {hue="1"}
+        Color colorFanLight1 "Farbe" <hue> (fanLightLivingRoomBulb1) {hue="1"}
+        Dimmer colorTemperatureFanLight1 "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="1;colorTemperature"}
+        Dimmer dimmerFanLight1 "Dimmer" <hue> (fanLightLivingRoomBulb1,allBrightnessLivingRoomDimmer) {hue="1;brightness"}
+      Group:Switch:OR(ON, OFF) fanLightLivingRoomBulb2 "Lampe 2 [(%s)]" <hue> (fanLightLivingRoom)
+        Switch switchFanLight2 "Aktivierung" <hue> (fanLightLivingRoomBulb2,allLivingRoomLightSwitch) {hue="6"}
+        Color colorFanLight2 "Farbe" <hue> (fanLightLivingRoomBulb2) {hue="6"}
+        Dimmer colorTemperatureFanLight2 "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="6;colorTemperature"}
+        Dimmer dimmerFanLight2 "Dimmer" <hue> (fanLightLivingRoomBulb2,allBrightnessLivingRoomDimmer) {hue="6;brightness"}
+    Group:Switch:OR(ON, OFF) chimneyUplight "Fluter Kamin [(%s)]" <hue> (lightLivingRoom)
+      Switch switchChimneyUplight "Aktivierung" <hue> (chimneyUplight,allLivingRoomLightSwitch) {hue="3"}
+      Color colorChimneyUplight "Farbe" <hue> (chimneyUplight) {hue="3"}
+      Dimmer colorTemperatureChimneyUplight "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="3;colorTemperature"}
+      Dimmer dimmerChimneyUplight "Dimmer" <hue> (chimneyUplight,allBrightnessLivingRoomDimmer) {hue="3;brightness"}
+    Group:Switch:OR(ON, OFF) centerUplight "Fluter Mitte [(%s)]" <hue> (lightLivingRoom)
+      Switch switchCenterUplight "Aktivierung" <hue> (centerUplight,allLivingRoomLightSwitch) {hue="2"}
+      Color colorCenterUplight "Farbe" <hue> (centerUplight) {hue="2"}
+      Dimmer colorTemperatureCenterUplight "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="2;colorTemperature"}
+      Dimmer dimmerCenterUplight "Dimmer" <hue> (centerUplight,allBrightnessLivingRoomDimmer) {hue="2;brightness"}
+    Group:Switch:OR(ON, OFF) windowUplight "Fluter Fenster [(%s)]" <hue> (lightLivingRoom)
+      Switch switchWindowUplight "Aktivierung" <hue> (windowUplight,allLivingRoomLightSwitch) {hue="7"}
+      Color colorWindowUplight "Farbe" <hue> (windowUplight) {hue="7"}
+      Dimmer colorTemperatureWindowUplight "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="7;colorTemperature"}
+      Dimmer dimmerWindowUplight "Dimmer" <hue> (windowUplight,allBrightnessLivingRoomDimmer) {hue="7;brightness"}
+
+  Group lightBedRoom "Schlafzimmer Licht [(%s)]" <hue> (light,bedRoom)
+    Group:Switch:OR(ON, OFF) bedStand "Nachttisch [(%s)]" <hue> (lightBedRoom)
+      Switch switchBedStand "Aktivierung" <hue> (bedStand,allBedRoomLightSwitch) {hue="4"}
+      Color colorBedStand "Farbe" <hue> (bedStand) {hue="4;colorTemperature"}
+      Dimmer colorTemperatureBedStand "Farbtemperatur" <hue> (allColorTemperatureBedRoomDimmer) {hue="4;colorTemperature"}
+      Dimmer dimmerBedStand "Dimmer" <hue> (bedStand,allBrightnessBedRoomDimmer) {hue="4;brightness"}
+    Group:Switch:OR(ON, OFF) bedRoomCeiling "DeckenLeuchte [(%s)]" <hue> (lightBedRoom)
+      Switch switchBedRoomCeiling "Aktivierung" <hue> (bedRoomCeiling,allBedRoomLightSwitch) {hue="8"}
+      Color colorBedRoomCeiling "Farbe" <hue> (bedRoomCeiling) {hue="8"}
+      Dimmer colorTemperatureBedRoomCeiling "Farbtemperatur" <hue> (allColorTemperatureBedRoomDimmer) {hue="8;colorTemperature"}
+      Dimmer dimmerBedRoomCeiling "Dimmer" <hue> (bedRoomCeiling,allBrightnessBedRoomDimmer) {hue="8;brightness"}
+
+/* Sensors */
+Group sensor "Alle Sensordaten"
+
+  Group sensorKitchen "Küche Sensordaten" <temperature> (sensor,kitchen)
+    Contact kitchenMotion "Bewegungsmelder [%s]" <present> (sensorKitchen,motion,KITCHEN) {zwave="2:command=basic"}
+    Number kitchenLux "Helligkeit: [%.2f Lux]" <sun> (sensorKitchen,KITCHEN) {zwave="2:command=sensor_multilevel,sensor_type=3"}
+    Number kitchenTemperature "Temperatur: [%.1f C]" <temperature> (sensorKitchen) {zwave="2:command=sensor_multilevel,sensor_type=1"}
+    Number kitchenBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorKitchen) {zwave="2:command=battery"}
+
+  Group sensorLivingRoom "Wohnzimmer Sensordaten" <temperature> (sensor,livingRoom)
+    Contact livingRoomMotion "Bewegungsmelder [%s]"	<present> (sensorLivingRoom,motion,LIVING_ROOM) {zwave="3:command=basic"}
+    Number livingRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorLivingRoom,LIVING_ROOM) {zwave="3:command=sensor_multilevel,sensor_type=3"}
+    Number livingRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorLivingRoom) {zwave="3:command=sensor_multilevel,sensor_type=1"}
+    Number livingRoomBattery "Batterie Ladestatus: [%d %%]"	<energy> (sensorLivingRoom) {zwave="3:command=battery"}
+
+  Group sensorBedRoom "Schlafzimmer Sensordaten" <temperature> (sensor,bedRoom)
+    Contact bedRoomMotion "Bewegungsmelder [%s]" <present> (sensorBedRoom,motion,BED_ROOM) {zwave="4:command=basic"}
+    Number bedRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorBedRoom,BED_ROOM) {zwave="4:command=sensor_multilevel,sensor_type=3"}
+    Number bedRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorBedRoom) {zwave="4:command=sensor_multilevel,sensor_type=1"}
+    Number bedRoomBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorBedRoom) {zwave="4:command=battery"}
+    
+
+/* Configuration */
+Number cookingStart
+Number cookingEnd
+
+Number hallLightOnThreshold
+Number hallLightOffThreshold
+Number kitchenLightOnThreshold (KITCHEN)
+Number kitchenLightOffThreshold (KITCHEN)
+Number bathRoomLightOnThreshold
+Number bathRoomLightOffThreshold
+Number livingRoomLightOnThreshold (LIVING_ROOM)
+Number livingRoomLightOffThreshold (LIVING_ROOM)
+Number bedRoomLightOnThreshold (BED_ROOM)
+Number bedRoomLightOffThreshold (BED_ROOM)
+
+Switch autoSwitchOffBedRoomLight
+Number autoSwitchOffBedRoomLightTimeout
