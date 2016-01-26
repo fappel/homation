@@ -4,6 +4,7 @@ sitemap my_place label="Zuhause" {
   	Group item=kitchen 
   	Group item=livingRoom
   	Group item=bedRoom
+  	Group item=bathRoom
   }
   
   Frame label="Beleuchtung" {
@@ -19,6 +20,11 @@ sitemap my_place label="Zuhause" {
   	Text label="Kochzeiten" icon="clock-on" {
       Setpoint item=cookingStart label="Anfang [%2d:00 Uhr]" minValue=0 maxValue=23 step=1
       Setpoint item=cookingEnd label="Ende [%2d:00 Uhr]" minValue=1 maxValue=24 step=1
+  	}
+  	
+  	Text label="Badzeiten" icon="clock-on" {
+      Setpoint item=morningStart label="Anfang [%2d:00 Uhr]" minValue=0 maxValue=23 step=1
+      Setpoint item=morningEnd label="Ende [%2d:00 Uhr]" minValue=1 maxValue=24 step=1
   	}
   	
   	Text label="Lichtabschaltung" icon="clock-on" {
@@ -38,6 +44,7 @@ sitemap my_place label="Zuhause" {
         Setpoint item=kitchenLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-off"
       }
   	  Text label="Bad" icon="sun_clouds" {
+  	  	Text item=bathRoomLux label="Aktueller Lichtwert [%d Lux]"
         Setpoint item=bathRoomLightOnThreshold label="Beleuchtung ein bis [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-on"
         Setpoint item=bathRoomLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-off"
       }

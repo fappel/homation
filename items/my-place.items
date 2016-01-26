@@ -9,12 +9,14 @@ Group ROOMS
 Group KITCHEN (ROOMS)
 Group LIVING_ROOM (ROOMS)
 Group BED_ROOM (ROOMS)
+Group BATH_ROOM (ROOMS)
 
 String activeRoom
 
 Group kitchen "Küche" <kitchen>
 Group livingRoom "Wohnzimmer" <video>
 Group bedRoom "Schlafzimmer" <bedroom>
+Group bathRoom "Bad" <bath>
 
 /* Lights */
 Number brightness
@@ -25,14 +27,17 @@ Group light "Alle Lampen"
 Group allKitchenLightSwitch (KITCHEN)
 Group allLivingRoomLightSwitch (LIVING_ROOM)
 Group allBedRoomLightSwitch (BED_ROOM)
+Group allBathRoomLightSwitch (BATH_ROOM)
 
 Group allColorTemperatureKitchenDimmer (KITCHEN)
 Group allColorTemperatureLivingRoomDimmer (LIVING_ROOM)
 Group allColorTemperatureBedRoomDimmer (BED_ROOM)
+Group allColorTemperatureBathRoomDimmer (BATH_ROOM)
 
 Group allBrightnessKitchenDimmer (KITCHEN)
 Group allBrightnessLivingRoomDimmer (LIVING_ROOM)
 Group allBrightnessBedRoomDimmer (BED_ROOM)
+Group allBrightnessBathRoomDimmer (BATH_ROOM)
 
   Group lightKitchen "Küche Licht [(%s)]" <hue> (light,kitchen)
     Group:Switch:OR(ON, OFF) kitchenCeiling "Deckenleuchte [(%s)]" <hue> (lightKitchen)
@@ -81,6 +86,13 @@ Group allBrightnessBedRoomDimmer (BED_ROOM)
       Dimmer colorTemperatureBedRoomCeiling "Farbtemperatur" <hue> (allColorTemperatureBedRoomDimmer) {hue="8;colorTemperature"}
       Dimmer dimmerBedRoomCeiling "Dimmer" <hue> (bedRoomCeiling,allBrightnessBedRoomDimmer) {hue="8;brightness"}
 
+  Group lightBathRoom "Bad Licht [(%s)]" <hue> (light,bathRoom)
+    Group:Switch:OR(ON, OFF) bathRoomCeiling "Deckenleuchte [(%s)]" <hue> (lightBathRoom)
+      Switch switchBathRoomCeiling "Aktivierung" <hue> (bathRoomCeiling,allBathRoomLightSwitch) {hue="9"}
+      Color colorBathRoomCeiling "Farbe" <hue> (bathRoomCeiling) {hue="9"}
+      Dimmer colorTemperatureBathRoomCeiling "Farbtemperatur" <hue> (allColorTemperatureBathRoomDimmer) {hue="9;colorTemperature"}
+      Dimmer dimmerBathRoomCeiling "Dimmer" <hue> (bathRoomCeiling,allBrightnessBathRoomDimmer) {hue="9;brightness"}
+
 /* Sensors */
 Group sensor "Alle Sensordaten"
 
@@ -101,18 +113,26 @@ Group sensor "Alle Sensordaten"
     Number bedRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorBedRoom,BED_ROOM) {zwave="4:command=sensor_multilevel,sensor_type=3"}
     Number bedRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorBedRoom) {zwave="4:command=sensor_multilevel,sensor_type=1"}
     Number bedRoomBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorBedRoom) {zwave="4:command=battery"}
-    
+
+  Group sensorBathRoom "Bad Sensordaten" <temperature> (sensor,bathRoom)
+    Contact bathRoomMotion "Bewegungsmelder [%s]" <present> (sensorBathRoom,motion,BATH_ROOM) {zwave="5:command=basic"}
+    Number bathRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorBathRoom,BATH_ROOM) {zwave="5:command=sensor_multilevel,sensor_type=3"}
+    Number bathRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorBathRoom) {zwave="5:command=sensor_multilevel,sensor_type=1"}
+    Number bathRoomBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorBathRoom) {zwave="5:command=battery"}
 
 /* Configuration */
 Number cookingStart
 Number cookingEnd
 
+Number morningStart
+Number morningEnd
+
 Number hallLightOnThreshold
 Number hallLightOffThreshold
 Number kitchenLightOnThreshold (KITCHEN)
 Number kitchenLightOffThreshold (KITCHEN)
-Number bathRoomLightOnThreshold
-Number bathRoomLightOffThreshold
+Number bathRoomLightOnThreshold (BATH_ROOM)
+Number bathRoomLightOffThreshold (BATH_ROOM)
 Number livingRoomLightOnThreshold (LIVING_ROOM)
 Number livingRoomLightOffThreshold (LIVING_ROOM)
 Number bedRoomLightOnThreshold (BED_ROOM)

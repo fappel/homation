@@ -57,6 +57,13 @@ then
   postUpdate( activeRoom, BED_ROOM.name )
 end
 
+rule "Bathroom Motion"
+when
+  Item bathRoomMotion changed from CLOSED to OPEN
+then
+  postUpdate( activeRoom, BATH_ROOM.name )
+end
+
 rule "Activation Update"
 when
   Time cron "0/2 * * * * ?"

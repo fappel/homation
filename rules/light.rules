@@ -50,6 +50,12 @@ val Functions$Function2 brightnessProvider = [ GroupItem room, DimmerItem item |
   {
   	return Integer::valueOf( 100 )
   }
+  if(    room.name.equals( BATH_ROOM.name ) 
+  	  && hourOfDay >= ( morningStart.state as DecimalType ).intValue() 
+  	  && hourOfDay < ( morningEnd.state as DecimalType ).intValue() )
+  {
+  	return Integer::valueOf( 100 )
+  }
   return ( brightness.state as DecimalType ).intValue()
 ]
 

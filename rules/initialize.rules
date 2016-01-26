@@ -25,42 +25,48 @@ then
     if( cookingEnd.lastUpdate == null ) {
       postUpdate( cookingEnd, 21 )
     }
+    if( morningStart.lastUpdate == null ) {
+      postUpdate( morningStart, 5 )
+    }
+    if( morningEnd.lastUpdate == null ) {
+      postUpdate( morningEnd, 8 )
+    }
     if( hallLightOnThreshold.lastUpdate == null ) {
-	  postUpdate( hallLightOnThreshold, 50 )
+      postUpdate( hallLightOnThreshold, 50 )
     }
     if( hallLightOffThreshold.lastUpdate == null ) {
-	  postUpdate( hallLightOffThreshold, 400 )
+      postUpdate( hallLightOffThreshold, 400 )
     }
     if( kitchenLightOnThreshold.lastUpdate == null ) {
-	  postUpdate( kitchenLightOnThreshold, 50 )
+      postUpdate( kitchenLightOnThreshold, 50 )
     }
     if( kitchenLightOffThreshold.lastUpdate == null ) {
-	  postUpdate( kitchenLightOffThreshold, 400 )
+      postUpdate( kitchenLightOffThreshold, 400 )
     }
     if( bathRoomLightOnThreshold.lastUpdate == null ) {
-	  postUpdate( bathRoomLightOnThreshold, 50 )
+      postUpdate( bathRoomLightOnThreshold, 50 )
     }
     if( bathRoomLightOffThreshold.lastUpdate == null ) {
-	  postUpdate( bathRoomLightOffThreshold, 400 )
+      postUpdate( bathRoomLightOffThreshold, 400 )
     }
     if( livingRoomLightOnThreshold.lastUpdate == null ) {
-	  postUpdate( livingRoomLightOnThreshold, 50 )
+      postUpdate( livingRoomLightOnThreshold, 50 )
     }
     if( livingRoomLightOffThreshold.lastUpdate == null ) {
-	  postUpdate( livingRoomLightOffThreshold, 400 )
+      postUpdate( livingRoomLightOffThreshold, 400 )
     }
     if( bedRoomLightOnThreshold.lastUpdate == null ) {
-	  postUpdate( bedRoomLightOnThreshold, 50 )
+      postUpdate( bedRoomLightOnThreshold, 50 )
     }
     if( bedRoomLightOffThreshold.lastUpdate == null ) {
-	  postUpdate( bedRoomLightOffThreshold, 400 )
+      postUpdate( bedRoomLightOffThreshold, 400 )
     }
     if( autoSwitchOffBedRoomLight.lastUpdate == null ) {
-	  postUpdate( autoSwitchOffBedRoomLight, ON )
+      postUpdate( autoSwitchOffBedRoomLight, ON )
     }
     if( autoSwitchOffBedRoomLightTimeout.lastUpdate == null ) {
-	  postUpdate( autoSwitchOffBedRoomLightTimeout, 40 )
-    }
+      postUpdate( autoSwitchOffBedRoomLightTimeout, 40 )
+    }    
 
     postUpdate( initialization, ON )
     logInfo( "initialize", "Item values are initialized" )
