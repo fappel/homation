@@ -28,6 +28,14 @@ val Functions$Function1 updateRoomActivation = [ Functions$Function1 mustActivat
   return true
 ]
 
+rule "Wait for Initialization"
+when
+  System started
+then
+  logInfo( "light", "Motion rules wait for initialization..." )
+  postUpdate( initialization, OFF )
+end
+
 rule "Kitchen Motion"
 when
   Item kitchenMotion changed from CLOSED to OPEN

@@ -101,6 +101,14 @@ val Functions$Function1 switchOffActiveRoomLightsIfTimeoutExceeded = [ int timeo
   return 0
 ]
 
+rule "Wait for Initialization"
+when
+  System started
+then
+  logInfo( "light", "Light rules wait for initialization..." )
+  postUpdate( initialization, OFF )
+end
+
 rule "Room Activation"
 when
   Item activeRoom changed

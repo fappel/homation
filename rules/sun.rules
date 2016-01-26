@@ -11,13 +11,21 @@ var Number longitude = 8.419463
 //var int fastForwardHour = 0
 //var int fastForwardMinute = 0
 
+rule "Wait for Initialization"
+when
+  System started
+then
+  logInfo( "sun", "Sun rules wait for initialization..." )
+  postUpdate( initialization, OFF )
+end
+
 rule "Set Sun and Dawn States"
 when
   Time cron "/30 * * * * ?"
 //  Time cron "/1 * * * * ?"
 then
   if( initialization.state != ON ) { return false }
-
+  
   var month  = now.getMonthOfYear
   var day    = now.getDayOfMonth
   var hour   = now.getHourOfDay
