@@ -13,9 +13,9 @@ Number sunHeight
 Group ROOMS
 Group KITCHEN (ROOMS)
 Group LIVING_ROOM (ROOMS)
-Group BED_ROOM (ROOMS)
+Group BED_ROOM (ROOMS,autoSwitchOffBedRoom)
 Group BATH_ROOM (ROOMS)
-Group HALL (ROOMS)
+Group HALL (ROOMS,autoSwitchOffHall)
 
 String activeRoom
 
@@ -131,13 +131,13 @@ Group sensor "Alle Sensordaten"
     Number livingRoomBattery "Batterie Ladestatus: [%d %%]"	<energy> (sensorLivingRoom) {zwave="3:command=battery"}
 
   Group sensorBedRoom "Schlafzimmer Sensordaten" <temperature> (sensor,bedRoom)
-    Contact bedRoomMotion "Bewegungsmelder [%s]" <present> (sensorBedRoom,motion,BED_ROOM) {zwave="4:command=basic"}
+    Contact bedRoomMotion "Bewegungsmelder [%s]" <present> (sensorBedRoom,motion,BED_ROOM,autoSwitchOffBedRoom) {zwave="4:command=basic"}
     Number bedRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorBedRoom,BED_ROOM) {zwave="4:command=sensor_multilevel,sensor_type=3"}
     Number bedRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorBedRoom) {zwave="4:command=sensor_multilevel,sensor_type=1"}
     Number bedRoomBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorBedRoom) {zwave="4:command=battery"}
 
   Group sensorHall "Flur Sensordaten" <temperature> (sensor,hall)
-    Contact hallMotion "Bewegungsmelder [%s]" <present> (sensorHall,motion,HALL) {zwave="5:command=basic"}
+    Contact hallMotion "Bewegungsmelder [%s]" <present> (sensorHall,motion,HALL,autoSwitchOffHall) {zwave="5:command=basic"}
     Number hallLux "Helligkeit: [%.2f Lux]" <sun> (sensorHall,HALL) {zwave="5:command=sensor_multilevel,sensor_type=3"}
     Number hallTemperature "Temperatur: [%.1f C]" <temperature> (sensorHall) {zwave="5:command=sensor_multilevel,sensor_type=1"}
     Number hallBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorHall) {zwave="5:command=battery"}
@@ -166,5 +166,12 @@ Number livingRoomLightOffThreshold (LIVING_ROOM)
 Number bedRoomLightOnThreshold (BED_ROOM)
 Number bedRoomLightOffThreshold (BED_ROOM)
 
-Switch autoSwitchOffBedRoomLight
-Number autoSwitchOffBedRoomLightTimeout
+Group AUTO_SWITCH_OFF
+  Group autoSwitchOffBedRoom (AUTO_SWITCH_OFF)
+    Switch autoSwitchOffBedRoomLight (autoSwitchOffBedRoom)
+    Number autoSwitchOffBedRoomLightTimeout (autoSwitchOffBedRoom)
+    Number autoSwitchOffBedRoomLightTimeoutValue (autoSwitchOffBedRoom)
+  Group autoSwitchOffHall (AUTO_SWITCH_OFF)
+    Switch autoSwitchOffHallLight (autoSwitchOffHall)
+    Number autoSwitchOffHallLightTimeout (autoSwitchOffHall)
+    Number autoSwitchOffHallLightTimeoutValue (autoSwitchOffHall)

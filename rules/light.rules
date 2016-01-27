@@ -7,8 +7,6 @@ import org.eclipse.xtext.xbase.lib.*
 
 import java.lang.*
 
-var int lightningTimeout = 0
-
 val Functions$Function1 mustIlluminate = [ GroupItem room |
   var roomSwitch = room.members.get( 0 ) as GroupItem
   var lux = room.members.get( 4 ).state
@@ -97,14 +95,27 @@ val Functions$Function2 adjustColorTemperature = [ GroupItem room, Functions$Fun
   return true
 ]
 
-val Functions$Function1 switchOffActiveRoomLightsIfTimeoutExceeded = [ int timeout |
-  if( activeRoom.state.equals( BED_ROOM.name ) && autoSwitchOffBedRoomLight.state == ON ) {
-    if( timeout >= ( autoSwitchOffBedRoomLightTimeout.state as DecimalType ).intValue() ) { 
-      postUpdate( activeRoom, "NONE" )
+val Functions$Function0 switchOffActiveRoomLightsOnTimeout = [|
+  AUTO_SWITCH_OFF.members.forEach[ item |
+  	var GroupItem roomAutoSwitch = item as GroupItem
+  	var room = roomAutoSwitch.members.get( 0 ) as GroupItem
+  	var motion = roomAutoSwitch.members.get( 1 ) as ContactItem
+  	var autoSwitch = roomAutoSwitch.members.get( 2 ) as SwitchItem
+  	var timeoutDefinition = ( roomAutoSwitch.members.get( 3 ).state as DecimalType ).intValue()
+  	var timeoutValue = ( roomAutoSwitch.members.get( 4 ).state as DecimalType ).intValue()
+  	var newTimeoutValue = 0
+    if( activeRoom.state.equals( room.name ) && motion.state == CLOSED && autoSwitch.state == ON ) {
+      if( timeoutValue >= timeoutDefinition ) { 
+        postUpdate( activeRoom, "NONE" )
+      } else {
+        newTimeoutValue = timeoutValue + 2
+      }
     }
-    return timeout + 2
-  }
-  return 0
+    if( timeoutValue != newTimeoutValue ) {
+      postUpdate( roomAutoSwitch.members.get( 4 ), newTimeoutValue )
+    }
+  ]
+  return true  
 ]
 
 rule "Wait for Initialization"
@@ -127,7 +138,11 @@ then
     }
   ]
   
-  lightningTimeout = 0
+  AUTO_SWITCH_OFF.members.forEach[ item |
+  	if( ( ( item as GroupItem ).members.get( 4 ).state as DecimalType ).intValue() != 0 ) {
+      postUpdate( ( item as GroupItem ).members.get( 4 ), 0 )
+  	} 
+  ]
 end
 
 rule "Periodical Bulb Updates"
@@ -151,7 +166,7 @@ then
     if( colorTemperature.state != Undefined ) {
       ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
     }
-    lightningTimeout = switchOffActiveRoomLightsIfTimeoutExceeded.apply( lightningTimeout ) as Integer
+    switchOffActiveRoomLightsOnTimeout.apply()
   }
 end
 

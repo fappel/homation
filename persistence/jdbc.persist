@@ -34,6 +34,9 @@ Items {
   bedRoomLightOffThreshold : strategy = everyChange, restoreOnStartup
   autoSwitchOffBedRoomLight : strategy = everyChange, restoreOnStartup
   autoSwitchOffBedRoomLightTimeout : strategy = everyChange, restoreOnStartup
+  autoSwitchOffHallLight : strategy = everyChange, restoreOnStartup
+  autoSwitchOffHallLightTimeout : strategy = everyChange, restoreOnStartup
+
 
   // additionally, persist all temperature and weather values every hour
   // Temperature*, Weather* : strategy = everyHour

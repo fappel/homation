@@ -32,8 +32,10 @@ sitemap my_place label="Zuhause" {
       Switch item=activeRoom label="Alles aus" mappings=[ "NONE"="AUS" ]
       Switch item=autoSwitchOffBedRoomLight label="Schlafzimmer" icon="bedroom"
       Setpoint item=autoSwitchOffBedRoomLightTimeout label="Ausschalten nach [%d] Sekunden" visibility=[autoSwitchOffBedRoomLight==ON] minValue=25 maxValue=120 step=1 icon="clock-on"
+      Switch item=autoSwitchOffHallLight label="Flur" icon="corridor"
+      Setpoint item=autoSwitchOffHallLightTimeout label="Ausschalten nach [%d] Sekunden" visibility=[autoSwitchOffHallLight==ON] minValue=25 maxValue=120 step=1 icon="clock-on"
   	}
-  	
+
   	Text label="Helligkeits Schwellwerte" icon="sun_clouds" {
   	  Text label="Flur" icon="sun_clouds" {
   	  	Text item=hallLux label="Aktueller Lichtwert [%d Lux]"

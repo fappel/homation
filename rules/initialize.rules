@@ -67,7 +67,15 @@ then
     }
     if( autoSwitchOffBedRoomLightTimeout.lastUpdate == null ) {
       postUpdate( autoSwitchOffBedRoomLightTimeout, 40 )
-    }    
+    }
+    postUpdate( autoSwitchOffBedRoomLightTimeoutValue, 0 )
+    if( autoSwitchOffHallLight.lastUpdate == null ) {
+      postUpdate( autoSwitchOffHallLight, ON )
+    }
+    if( autoSwitchOffHallLightTimeout.lastUpdate == null ) {
+      postUpdate( autoSwitchOffHallLightTimeout, 40 )
+    }
+    postUpdate( autoSwitchOffHallLightTimeoutValue, 0 )
     postUpdate( initializeRulesReady, ON )
     logInfo( "initialize", "Initialize rules wait for rule system initialization..." )
   ]
