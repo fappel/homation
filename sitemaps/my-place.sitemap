@@ -5,6 +5,7 @@ sitemap my_place label="Zuhause" {
   	Group item=livingRoom
   	Group item=bedRoom
   	Group item=bathRoom
+  	Group item=hall
   }
   
   Frame label="Beleuchtung" {
@@ -35,28 +36,29 @@ sitemap my_place label="Zuhause" {
   	
   	Text label="Helligkeits Schwellwerte" icon="sun_clouds" {
   	  Text label="Flur" icon="sun_clouds" {
-        Setpoint item=hallLightOnThreshold label="Beleuchtung ein bis [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-on"
-        Setpoint item=hallLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-off"
+  	  	Text item=hallLux label="Aktueller Lichtwert [%d Lux]"
+        Setpoint item=hallLightOnThreshold label="Beleuchtung ein bis [%d Lux]" minValue=0 maxValue=1000 step=5 icon="light-on"
+        Setpoint item=hallLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=5 icon="light-off"
       }
   	  Text label="Küche" icon="sun_clouds" {
   	  	Text item=kitchenLux label="Aktueller Lichtwert [%d Lux]"
-        Setpoint item=kitchenLightOnThreshold label="Beleuchtung ein bis [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-on"
-        Setpoint item=kitchenLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-off"
+        Setpoint item=kitchenLightOnThreshold label="Beleuchtung ein bis [%d Lux]" minValue=0 maxValue=1000 step=5 icon="light-on"
+        Setpoint item=kitchenLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=5 icon="light-off"
       }
   	  Text label="Bad" icon="sun_clouds" {
   	  	Text item=bathRoomLux label="Aktueller Lichtwert [%d Lux]"
-        Setpoint item=bathRoomLightOnThreshold label="Beleuchtung ein bis [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-on"
-        Setpoint item=bathRoomLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-off"
+        Setpoint item=bathRoomLightOnThreshold label="Beleuchtung ein bis [%d Lux]" minValue=0 maxValue=1000 step=5 icon="light-on"
+        Setpoint item=bathRoomLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=5 icon="light-off"
       }
   	  Text label="Wohnzimmer" icon="sun_clouds" {
   	  	Text item=livingRoomLux label="Aktueller Lichtwert [%d Lux]"
-        Setpoint item=livingRoomLightOnThreshold label="Beleuchtung ein bis [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-on"
-        Setpoint item=livingRoomLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-off"
+        Setpoint item=livingRoomLightOnThreshold label="Beleuchtung ein bis [%d Lux]" minValue=0 maxValue=1000 step=5 icon="light-on"
+        Setpoint item=livingRoomLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=5 icon="light-off"
       }
   	  Text label="Schlafzimmer" icon="sun_clouds" {
   	  	Text item=bedRoomLux label="Aktueller Lichtwert [%d Lux]"
-        Setpoint item=bedRoomLightOnThreshold label="Beleuchtung ein bis [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-on"
-        Setpoint item=bedRoomLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=25 icon="light-off"
+        Setpoint item=bedRoomLightOnThreshold label="Beleuchtung ein bis [%d Lux]" minValue=0 maxValue=1000 step=5 icon="light-on"
+        Setpoint item=bedRoomLightOffThreshold label="Beleuchtung aus ab [%d Lux]" minValue=0 maxValue=1000 step=5 icon="light-off"
       }
   	}
   }

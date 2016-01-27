@@ -111,8 +111,8 @@ rule "Wait for Initialization"
 when
   System started
 then
-  logInfo( "light", "Light rules wait for initialization..." )
-  postUpdate( initialization, OFF )
+  logInfo( "light", "Light rules wait rule system for initialization..." )
+  postUpdate( lightRulesReady, ON )
 end
 
 rule "Room Activation"
@@ -134,25 +134,25 @@ rule "Periodical Bulb Updates"
 when
   Time cron "0/2 * * * * ?"
 then
-  if( initialization.state != ON ) { return false }
-
-  ROOMS.members.forEach[ room |
-    if( mustIlluminate.apply( room ) as Boolean ) {
-      switchRoomLight.apply( room, ON )
+  if( initialized.state == ON ) { 
+    ROOMS.members.forEach[ room |
+      if( mustIlluminate.apply( room ) as Boolean ) {
+        switchRoomLight.apply( room, ON )
+      }
+    ]
+    ROOMS.members.forEach[ room |
+      if( mustDarken.apply( room ) as Boolean ) {
+        switchRoomLight.apply( room, OFF )
+      }
+    ]
+    if( brightness.state != Undefined ) {
+      ROOMS.members.forEach[ room | adjustBrightness.apply( room, brightnessProvider ) ]
     }
-  ]
-  ROOMS.members.forEach[ room |
-    if( mustDarken.apply( room ) as Boolean ) {
-      switchRoomLight.apply( room, OFF )
+    if( colorTemperature.state != Undefined ) {
+      ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
     }
-  ]
-  if( brightness.state != Undefined ) {
-    ROOMS.members.forEach[ room | adjustBrightness.apply( room, brightnessProvider ) ]
+    lightningTimeout = switchOffActiveRoomLightsIfTimeoutExceeded.apply( lightningTimeout ) as Integer
   }
-  if( colorTemperature.state != Undefined ) {
-    ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
-  }
-  lightningTimeout = switchOffActiveRoomLightsIfTimeoutExceeded.apply( lightningTimeout ) as Integer
 end
 
 rule "Brightness Calculation"

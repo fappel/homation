@@ -4,9 +4,10 @@ rule "Initialize"
 when
   System started
 then
-  postUpdate( initialization, OFF )
+  postUpdate( initialized, OFF )
+  postUpdate( initializeRulesReady, OFF )
 
-  createTimer( now.plusSeconds( 30 ) ) [|
+  createTimer( now.plusSeconds( 20 ) ) [|
     if( sunHeight.lastUpdate == null ) {
       postUpdate( sunHeight, -50.0 )
     }
@@ -67,8 +68,31 @@ then
     if( autoSwitchOffBedRoomLightTimeout.lastUpdate == null ) {
       postUpdate( autoSwitchOffBedRoomLightTimeout, 40 )
     }    
-
-    postUpdate( initialization, ON )
-    logInfo( "initialize", "Item values are initialized" )
+    postUpdate( initializeRulesReady, ON )
+    logInfo( "initialize", "Initialize rules wait for rule system initialization..." )
   ]
+end
+
+rule "Initialization Verification"
+when
+  Time cron "0/2 * * * * ?"
+then
+  if( initializeRulesReady.state == ON ) { 
+    val isReady = newArrayList( true )
+    INITIALIZATION.members.forEach[ item | isReady.set( 0, isReady.get( 0 ) && item.state == ON ) ]
+    if( initialized.state != if( isReady.get( 0 ) ) { ON } else { OFF } ) {
+      postUpdate( initialized, if( isReady.get( 0 ) ) { ON } else { OFF } )
+    }
+  }
+end
+
+rule "Initialization Change"
+when
+  Item initialized changed
+then
+  if( initialized.state == ON ) {
+    logInfo( "initialize", "Rule system is initialized" )
+  } else {
+    logInfo( "initialize", "Rule system is waiting for initialization" )
+  }
 end

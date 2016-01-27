@@ -14,12 +14,14 @@ Strategies {
  */
 Items {
   // persist all items once a day and on every change and restore them from the db at startup
-  sunHeight : strategy = everyChange, restoreOnStartup
-  activeRoom : strategy = everyChange, restoreOnStartup
-  brightness : strategy = everyChange, restoreOnStartup
-  colorTemperature : strategy = everyChange, restoreOnStartup
+  sunHeight : strategy = everyChange
+  activeRoom : strategy = everyChange
+  brightness : strategy = everyChange
+  colorTemperature : strategy = everyChange
   cookingStart : strategy = everyChange, restoreOnStartup
   cookingEnd : strategy = everyChange, restoreOnStartup
+  morningStart : strategy = everyChange, restoreOnStartup
+  morningEnd : strategy = everyChange, restoreOnStartup
   hallLightOnThreshold : strategy = everyChange, restoreOnStartup
   hallLightOffThreshold : strategy = everyChange, restoreOnStartup
   kitchenLightOnThreshold : strategy = everyChange, restoreOnStartup

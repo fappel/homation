@@ -15,8 +15,8 @@ rule "Wait for Initialization"
 when
   System started
 then
-  logInfo( "sun", "Sun rules wait for initialization..." )
-  postUpdate( initialization, OFF )
+  logInfo( "sun", "Sun rules wait for rule system initialization..." )
+  postUpdate( sunRulesReady, ON )
 end
 
 rule "Set Sun and Dawn States"
@@ -24,29 +24,29 @@ when
   Time cron "/30 * * * * ?"
 //  Time cron "/1 * * * * ?"
 then
-  if( initialization.state != ON ) { return false }
-  
-  var month  = now.getMonthOfYear
-  var day    = now.getDayOfMonth
-  var hour   = now.getHourOfDay
-  var minute = now.getMinuteOfHour
+  if( initialized.state == ON ) {
+    var month  = now.getMonthOfYear
+    var day    = now.getDayOfMonth
+    var hour   = now.getHourOfDay
+    var minute = now.getMinuteOfHour
 //
-//  fastForwardMinute = if( fastForwardMinute < 59 ) { fastForwardMinute + 20 } else { 0 }
-//  if( fastForwardMinute == 60 ) {
-//  	fastForwardMinute = 0
-//    fastForwardHour = if( fastForwardHour < 23 ) { fastForwardHour + 1 } else { 0 }
-//  }
-//  hour = fastForwardHour
-//  minute = fastForwardMinute
-//  logInfo( "sun.rules", "Time: " + hour + ":" + minute )
+//    fastForwardMinute = if( fastForwardMinute < 59 ) { fastForwardMinute + 20 } else { 0 }
+//    if( fastForwardMinute == 60 ) {
+//  	  fastForwardMinute = 0
+//      fastForwardHour = if( fastForwardHour < 23 ) { fastForwardHour + 1 } else { 0 }
+//    }
+//    hour = fastForwardHour
+//    minute = fastForwardMinute
+//    logInfo( "sun.rules", "Time: " + hour + ":" + minute )
 
-  // Source: http://www.jgiesen.de/SME/tk/index.htm
-  var tageszahl = (month - 1) * 30 + day + hour / 24 
-  var deklination = -23.45 * Math::cos((K * 360 * (tageszahl + 10) / 365).doubleValue)
-  var zeitgleichung = 60.0 * (-0.171 * Math::sin((0.0337*tageszahl+0.465).doubleValue) - 0.1299 * Math::sin((0.01787*tageszahl-0.168).doubleValue))
-  var stundenwinkel = 15.0 * (hour.doubleValue + (minute.doubleValue/60.0) - (15.0-longitude)/15.0 - 12.0 + zeitgleichung/60.0)
-  var x = Math::sin((K * latitude).doubleValue()) * Math::sin((K * deklination).doubleValue()) + Math::cos((K * latitude).doubleValue()) * Math::cos((K * deklination).doubleValue()) * Math::cos((K * stundenwinkel).doubleValue())
-  var sonnenhoehe = Math::asin(x.doubleValue) / K
+    // Source: http://www.jgiesen.de/SME/tk/index.htm
+    var tageszahl = (month - 1) * 30 + day + hour / 24 
+    var deklination = -23.45 * Math::cos((K * 360 * (tageszahl + 10) / 365).doubleValue)
+    var zeitgleichung = 60.0 * (-0.171 * Math::sin((0.0337*tageszahl+0.465).doubleValue) - 0.1299 * Math::sin((0.01787*tageszahl-0.168).doubleValue))
+    var stundenwinkel = 15.0 * (hour.doubleValue + (minute.doubleValue/60.0) - (15.0-longitude)/15.0 - 12.0 + zeitgleichung/60.0)
+    var x = Math::sin((K * latitude).doubleValue()) * Math::sin((K * deklination).doubleValue()) + Math::cos((K * latitude).doubleValue()) * Math::cos((K * deklination).doubleValue()) * Math::cos((K * stundenwinkel).doubleValue())
+    var sonnenhoehe = Math::asin(x.doubleValue) / K
 
-  sunHeight.postUpdate(sonnenhoehe)
+    sunHeight.postUpdate(sonnenhoehe)
+  }
 end

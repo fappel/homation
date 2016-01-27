@@ -32,43 +32,60 @@ rule "Wait for Initialization"
 when
   System started
 then
-  logInfo( "light", "Motion rules wait for initialization..." )
-  postUpdate( initialization, OFF )
+  logInfo( "motion", "Motion rules wait for rule system initialization..." )
+  postUpdate( motionRulesReady, ON )
 end
 
 rule "Kitchen Motion"
 when
-  Item kitchenMotion changed from CLOSED to OPEN
+  Item kitchenMotion changed
 then
-  postUpdate( activeRoom, KITCHEN.name )
+  if( kitchenMotion.state == OPEN ) {
+    postUpdate( activeRoom, KITCHEN.name )
+  }
 end
 
 rule "Living Room Motion"
 when
-  Item livingRoomMotion changed from CLOSED to OPEN
+  Item livingRoomMotion changed
 then
-  postUpdate( activeRoom, LIVING_ROOM.name )
+  if( livingRoomMotion.state == OPEN ) {
+    postUpdate( activeRoom, LIVING_ROOM.name )
+  }
 end
 
 rule "Bedroom Motion"
 when
-  Item bedRoomMotion changed from CLOSED to OPEN
+  Item bedRoomMotion changed
 then
-  postUpdate( activeRoom, BED_ROOM.name )
+  if( bedRoomMotion.state == OPEN ) {
+    postUpdate( activeRoom, BED_ROOM.name )
+  }
 end
 
 rule "Bathroom Motion"
 when
-  Item bathRoomMotion changed from CLOSED to OPEN
+  Item bathRoomMotion changed
 then
-  postUpdate( activeRoom, BATH_ROOM.name )
+  if( bathRoomMotion.state == OPEN ) {
+    postUpdate( activeRoom, BATH_ROOM.name )
+  }
+end
+
+rule "Hall Motion"
+when
+  Item hallMotion changed
+then
+  if( hallMotion.state == OPEN ) {
+    postUpdate( activeRoom, HALL.name )
+  }
 end
 
 rule "Activation Update"
 when
   Time cron "0/2 * * * * ?"
 then
-  if( initialization.state != ON ) { return false }
-
-  updateRoomActivation.apply( mustActivateRoom )
+  if( initialized.state == ON ) {
+    updateRoomActivation.apply( mustActivateRoom )
+  }
 end
