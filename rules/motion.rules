@@ -40,7 +40,7 @@ rule "Kitchen Motion"
 when
   Item kitchenMotion changed
 then
-  if( kitchenMotion.state == OPEN ) {
+  if( kitchenMotion.state == OPEN && !activeRoom.state.equals( KITCHEN.name ) ) {
     postUpdate( activeRoom, KITCHEN.name )
   }
 end
@@ -49,7 +49,7 @@ rule "Living Room Motion"
 when
   Item livingRoomMotion changed
 then
-  if( livingRoomMotion.state == OPEN ) {
+  if( livingRoomMotion.state == OPEN && !activeRoom.state.equals( LIVING_ROOM.name ) ) {
     postUpdate( activeRoom, LIVING_ROOM.name )
   }
 end
@@ -58,7 +58,7 @@ rule "Bedroom Motion"
 when
   Item bedRoomMotion changed
 then
-  if( bedRoomMotion.state == OPEN ) {
+  if( bedRoomMotion.state == OPEN && !activeRoom.state.equals( BED_ROOM.name ) ) {
     postUpdate( activeRoom, BED_ROOM.name )
   }
 end
@@ -67,7 +67,7 @@ rule "Bathroom Motion"
 when
   Item bathRoomMotion changed
 then
-  if( bathRoomMotion.state == OPEN ) {
+  if( bathRoomMotion.state == OPEN && !activeRoom.state.equals( BATH_ROOM.name ) ) {
     postUpdate( activeRoom, BATH_ROOM.name )
   }
 end
@@ -76,7 +76,7 @@ rule "Hall Motion"
 when
   Item hallMotion changed
 then
-  if( hallMotion.state == OPEN ) {
+  if( hallMotion.state == OPEN && !activeRoom.state.equals( HALL.name ) ) {
     postUpdate( activeRoom, HALL.name )
   }
 end
