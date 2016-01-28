@@ -17,8 +17,14 @@ then
     if( brightness.lastUpdate == null ) {
 	  postUpdate( brightness, new PercentType( 50 ) )
     }
+    if( autoBrightness.lastUpdate == null ) {
+	  postUpdate( autoBrightness, ON )
+    }
     if( colorTemperature.lastUpdate == null ) {
       postUpdate( colorTemperature, new PercentType( 50 ) )
+    }
+    if( autoColorTemperature.lastUpdate == null ) {
+      postUpdate( autoColorTemperature, ON )
     }
     if( cookingStart.lastUpdate == null ) {
       postUpdate( cookingStart, 18 )
@@ -74,6 +80,9 @@ then
     }
     if( autoSwitchOffHallLightTimeout.lastUpdate == null ) {
       postUpdate( autoSwitchOffHallLightTimeout, 40 )
+    }
+    if( activeScene.lastUpdate == null ) {
+      postUpdate( activeScene, "STANDARD" )
     }
     postUpdate( autoSwitchOffHallLightTimeoutValue, 0 )
     postUpdate( initializeRulesReady, ON )

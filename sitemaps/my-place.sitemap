@@ -18,6 +18,15 @@ sitemap my_place label="Zuhause" {
 
   Frame label="Konfiguration" {
   	
+  	Text label="Licht Dynamik" icon="line" {
+      Switch item=autoBrightness label="Helligkeit" icon="hue-40"
+      Slider item=brightness label="Statisch: [%d %%]" visibility=[autoBrightness==OFF]
+      Switch item=autoColorTemperature label="Farbtemperatur" icon="chart"
+      Slider item=colorTemperature label="Statisch: [%d %%]" visibility=[autoColorTemperature==OFF]
+  	}
+  	
+    Selection item=activeScene label="Szenen" icon="sofa" mappings=[ "STANDARD"="Standard", "HOME_CINEMA"="Heimkino", "COMPUTER_WORK"="Arbeiten am Rechner" ]
+  	
   	Text label="Kochzeiten" icon="clock-on" {
       Setpoint item=cookingStart label="Anfang [%2d:00 Uhr]" minValue=0 maxValue=23 step=1
       Setpoint item=cookingEnd label="Ende [%2d:00 Uhr]" minValue=1 maxValue=24 step=1
@@ -35,7 +44,7 @@ sitemap my_place label="Zuhause" {
       Switch item=autoSwitchOffHallLight label="Flur" icon="corridor"
       Setpoint item=autoSwitchOffHallLightTimeout label="Ausschalten nach [%d] Sekunden" visibility=[autoSwitchOffHallLight==ON] minValue=25 maxValue=120 step=1 icon="clock-on"
   	}
-
+  	
   	Text label="Helligkeits Schwellwerte" icon="sun_clouds" {
   	  Text label="Flur" icon="sun_clouds" {
   	  	Text item=hallLux label="Aktueller Lichtwert [%d Lux]"

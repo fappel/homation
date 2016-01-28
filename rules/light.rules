@@ -30,12 +30,24 @@ val Functions$Function1 mustDarken = [ GroupItem room |
             && isOn.get( 0 )
 ]
 
-val Functions$Function2 switchRoomLight = [ GroupItem room, String switchState |
+val Functions$Function3 bulbSwitchStateProvider = [ GroupItem room, SwitchItem item, String switchState |
+  if(    activeScene.state.equals( "HOME_CINEMA" ) 
+  	  && ( item == switchFanLight1 || item == switchFanLight2 || item == switchChimneyUplight ) )
+  {
+  	return OFF	
+  }
+  return switchState
+]
+
+val Functions$Function3 switchRoomLight = [ GroupItem room, String switchState, Functions$Function3 bulbSwitchStateProvider |
   var roomSwitch = room.members.get( 0 ) as GroupItem
   logInfo( "light", "Switch " + roomSwitch.name + " " + if( switchState == ON ) { ON } else { OFF } )
   roomSwitch.members.forEach[ item |
-	logInfo( "light", "  Switch " + item.name + " " + if( switchState == ON ) { ON } else { OFF } )
-  	item.sendCommand( if( switchState == ON ) { ON } else { OFF } )
+  	var actualSwitchState = bulbSwitchStateProvider.apply( room, item, switchState )
+  	if( item.state != actualSwitchState ) {
+      logInfo( "light", "  Switch bulb" + item.name + " " + if( actualSwitchState == ON ) { ON } else { OFF } )
+      item.sendCommand( if( actualSwitchState == ON ) { ON } else { OFF } )
+  	}
   ]
   return true
 ]
@@ -122,7 +134,7 @@ rule "Wait for Initialization"
 when
   System started
 then
-  logInfo( "light", "Light rules wait rule system for initialization..." )
+  logInfo( "light", "Light rules wait for rule system initialization..." )
   postUpdate( lightRulesReady, ON )
 end
 
@@ -130,11 +142,11 @@ rule "Room Activation"
 when
   Item activeRoom changed
 then
-  logInfo( "light", "Activate " + activeRoom.state )
+  logInfo( "light", "Activate room " + activeRoom.state )
 
   ROOMS.members.forEach[ room |
     if( mustIlluminate.apply( room ) as Boolean ) {
-      switchRoomLight.apply( room, ON )
+      switchRoomLight.apply( room, ON, bulbSwitchStateProvider )
     }
   ]
   
@@ -152,12 +164,12 @@ then
   if( initialized.state == ON ) { 
     ROOMS.members.forEach[ room |
       if( mustIlluminate.apply( room ) as Boolean ) {
-        switchRoomLight.apply( room, ON )
+        switchRoomLight.apply( room, ON, bulbSwitchStateProvider )
       }
     ]
     ROOMS.members.forEach[ room |
       if( mustDarken.apply( room ) as Boolean ) {
-        switchRoomLight.apply( room, OFF )
+        switchRoomLight.apply( room, OFF, bulbSwitchStateProvider )
       }
     ]
     if( brightness.state != Undefined ) {
@@ -174,12 +186,27 @@ rule "Brightness Calculation"
 when
   Item sunHeight changed
 then
-  var factor = Math::min( 3.33, Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 51.85 ) ) )
-  var value = Math::max( 5, Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 18 ) * factor ), 100.0 ) ).intValue()
-  if( brightness.state != value ) {
-    logInfo( "light", "Update Brightness: " + value )
-    postUpdate( brightness, value )
-  } 
+  if( autoBrightness.state == ON ) {
+    var factor = Math::min( 3.33, Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 51.85 ) ) )
+    var value = Math::max( 5, Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 18 ) * factor ), 100.0 ) ).intValue()
+    if( brightness.state != value ) {
+      logInfo( "light", "Update Brightness: " + value )
+      postUpdate( brightness, value )
+    } 
+  }
+end
+
+rule "Scene Activation"
+when
+  Item activeScene changed
+then
+  logInfo( "light", "Activate scene " + activeScene.state )
+
+  ROOMS.members.forEach[ room |
+    if( activeRoom.state.equals( room.name ) ) {
+      switchRoomLight.apply( room, OFF, bulbSwitchStateProvider )
+    }
+  ]
 end
 
 rule "Brightness Adjustment"
@@ -193,13 +220,15 @@ rule "Color Temperature Calculation"
 when
   Item sunHeight changed
 then
-  var factor = Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 37 ) )
-  var value = Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 6 ) * factor ), 100.0 )
-  var temperature = ( 100.0 - Math::max( 0.0, value ) ).intValue()
-  if( colorTemperature.state != temperature ) {  	
-    logInfo( "light", "Update Color Temperature: " + temperature )
-    postUpdate( colorTemperature, temperature )
-  } 
+  if( autoColorTemperature.state == ON ) {
+    var factor = Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 31 ) )
+    var value = Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 7 ) * factor ), 100.0 )
+    var temperature = ( 100.0 - Math::max( 0.0, value ) ).intValue()
+    if( colorTemperature.state != temperature ) {  	
+      logInfo( "light", "Update Color Temperature: " + temperature )
+      postUpdate( colorTemperature, temperature )
+    }
+  }
 end
 
 rule "Color Temperature Adjustment"

@@ -27,7 +27,9 @@ Group hall "Flur" <corridor>
 
 /* Lights */
 Number brightness
+Switch autoBrightness
 Number colorTemperature
+Switch autoColorTemperature
 
 Group light "Alle Lampen"
 
@@ -149,6 +151,8 @@ Group sensor "Alle Sensordaten"
     Number bathRoomBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorBathRoom) {zwave="6:command=battery"}
 
 /* Configuration */
+String activeScene
+
 Number cookingStart
 Number cookingEnd
 
@@ -175,3 +179,4 @@ Group AUTO_SWITCH_OFF
     Switch autoSwitchOffHallLight (autoSwitchOffHall)
     Number autoSwitchOffHallLightTimeout (autoSwitchOffHall)
     Number autoSwitchOffHallLightTimeoutValue (autoSwitchOffHall)
+    
