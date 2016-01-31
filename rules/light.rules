@@ -12,9 +12,10 @@ val Functions$Function1 mustIlluminate = [ GroupItem room |
   var motion = room.members.get( 3 ) as ContactItem
   var lux = room.members.get( 4 ).state
   var luxThreshold = ( room.members.get( 5 ).state as DecimalType ).intValue()
+  var allRoomsTimeout = ( illuminateAllRoomsTimeout.state as DecimalType ).intValue()
   val isOff = newArrayList( true )
   roomSwitch.members.forEach[ item | isOff.set( 0, isOff.get( 0 ) && ( item.state == Uninitialized || item.state == OFF ) ) ]
-  return    ( activeRoom.state.equals( room.name ) || motion.state == OPEN )  
+  return    ( activeRoom.state.equals( room.name ) || motion.state == OPEN || allRoomsTimeout > 0 )  
          && isOff.get( 0 ) 
          && ( lux == Uninitialized || lux <= luxThreshold )
 ]
@@ -24,11 +25,13 @@ val Functions$Function1 mustDarken = [ GroupItem room |
   var motion = room.members.get( 3 ) as ContactItem
   var lux = room.members.get( 4 ).state
   var luxThreshold = ( room.members.get( 6 ).state as DecimalType ).intValue()
+  var allRoomsTimeout = ( illuminateAllRoomsTimeout.state as DecimalType ).intValue()
   val isOn = newArrayList( false )
   roomSwitch.members.forEach[ item | isOn.set( 0, isOn.get( 0 ) || item.state == ON ) ]
   return    !activeRoom.state.equals( room.name ) 
          && motion.state == CLOSED
          && isOn.get( 0 )
+         && allRoomsTimeout == 0
          ||    ( lux != Uninitialized && lux > luxThreshold )
             && isOn.get( 0 )
 ]
@@ -120,10 +123,10 @@ val Functions$Function0 switchOffActiveRoomLightsOnTimeout = [|
   	var timeoutValue = ( roomAutoSwitch.members.get( 4 ).state as DecimalType ).intValue()
   	var newTimeoutValue = 0
     if( activeRoom.state.equals( room.name ) && motion.state == CLOSED && autoSwitch.state == ON ) {
-      if( timeoutValue >= timeoutDefinition ) { 
+      if( timeoutValue >= timeoutDefinition ) {
         postUpdate( activeRoom, "NONE" )
-        if( !activeScene.state.equals( "IDLE_PERIOD" ) ) {
-          postUpdate( activeScene, "IDLE_PERIOD" )
+        if( !sceneSelection.members.get( 0 ).equals( IDLE_PERIOD ) ) {
+          postUpdate( activeScene, IDLE_PERIOD.name )
         }
       } else {
         newTimeoutValue = timeoutValue + 2
@@ -142,6 +145,20 @@ val Functions$Function1 resetSwitchOffActiveRoomLightTimeout = [ GroupItem room 
   } 
 ]
 
+val Functions$Function0 updateIlluminateAllRoomsTimeout = [|
+  if( ( illuminateAllRoomsTimeout.state as DecimalType ).intValue() > 0 ) {
+    postUpdate( illuminateAllRoomsTimeout, ( illuminateAllRoomsTimeout.state as DecimalType ).intValue() -1 )
+  }
+  return null
+]
+
+val Functions$Function0 initializeIlluminateAllRoomsTimeout = [|
+  var scene = ( sceneSelection.members.get( 0 ) as GroupItem )
+  var timeout = ( scene.members.get( 1 ).state as DecimalType ).intValue()
+  postUpdate( illuminateAllRoomsTimeout, timeout )
+  return null
+]
+
 rule "Wait for Initialization"
 when
   System started
@@ -158,6 +175,7 @@ then
 
   ROOMS.members.forEach[ room |
     if( mustIlluminate.apply( room ) as Boolean ) {
+      initializeIlluminateAllRoomsTimeout.apply()
       switchRoomLight.apply( room, ON, bulbSwitchStateProvider )
     }
   ]
@@ -187,6 +205,7 @@ then
       ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
     }
     switchOffActiveRoomLightsOnTimeout.apply()
+    updateIlluminateAllRoomsTimeout.apply()    
   }
 end
 

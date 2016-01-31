@@ -30,10 +30,21 @@ val Functions$Function0 defineBulbExclusions = [|
   return null	
 ]
 
+val Functions$Function0 defineIlluminateAllLightTimeouts = [|
+  SCENES.members.forEach[ sceneDefinition |
+  	postUpdate( ( sceneDefinition as GroupItem ).members.get( 1 ), 0 )
+  ]
+  
+  postUpdate( IDLE_PERIOD_ILLUMINATE_ALL_ROOMS_TIMEOUT, 20 )
+  return null
+]
+
 val Functions$Function0 clearBulbExclusions = [|
   SCENES.members.forEach[ sceneDefinition |
   	( sceneDefinition as GroupItem ).members.forEach[ setting |
-      ( setting as GroupItem ).members.clear
+  	  if( setting instanceof GroupItem ) {
+        ( setting as GroupItem ).members.clear
+  	  }
   	]
   ]
   return null
@@ -54,6 +65,7 @@ when
 then
   clearBulbExclusions.apply()
   defineBulbExclusions.apply()
+  defineIlluminateAllLightTimeouts.apply()
   postUpdate( sceneRulesReady, ON )
   logInfo( "scene", "Scene rules wait for rule system initialization..." )
 end

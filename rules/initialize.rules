@@ -84,6 +84,7 @@ then
     if( activeScene.lastUpdate == null ) {
       postUpdate( activeScene, "STANDARD" )
     }
+    postUpdate( illuminateAllRoomsTimeout, 0 )
     postUpdate( activityRate, 100 )
     postUpdate( autoSwitchOffHallLightTimeoutValue, 0 )
     postUpdate( initializeRulesReady, ON )

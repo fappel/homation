@@ -115,15 +115,16 @@ then
   }
 end
 
-rule ""
+rule "Activity Rate Gain"
 when
   Item activityRate changed
 then
   if( ( activityRate.state as DecimalType ).intValue() > 50
-  	  && activeScene.state.equals( "IDLE_PERIOD" )
+  	  && sceneSelection.members.get( 0 ).equals( IDLE_PERIOD )
   	  && !activeRoom.state.equals( "NONE" ) )
   {
-  	postUpdate( activeScene, "STANDARD" )
+  	postUpdate( activeScene, STANDARD.name )
+  	postUpdate( illuminateAllRoomsTimeout, 0 )
   }
 end
 
