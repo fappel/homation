@@ -4,7 +4,12 @@ import org.openhab.core.items.*
 
 import org.eclipse.xtext.xbase.lib.*
 
+import org.joda.time.*
+
 import java.lang.*
+import java.util.*
+
+val List motionActivations = newArrayList()
 
 val Functions$Function1 mustActivateRoom = [ GroupItem room |
   val allOthersClosed = newArrayList( true )
@@ -28,12 +33,41 @@ val Functions$Function1 updateRoomActivation = [ Functions$Function1 mustActivat
   return true
 ]
 
+val Functions$Function1 updateMotionActivations = [ List motionActivations |
+  val active = newArrayList( false )
+  ROOMS.members.forEach[ item |
+  	var room = item as GroupItem
+    var motion = room.members.get( 3 ) as ContactItem
+    active.set( 0, active.get( 0 ) || motion.state == OPEN )
+  ]
+  if( active.get( 0 ) ) {
+  	motionActivations.add( now )
+  }
+  val toRemove = newArrayList()
+  motionActivations.forEach[ item |
+  	if( ( item as DateTime ).plusMinutes( 5 ).beforeNow ) {
+      toRemove.add( item )
+  	}
+  ]
+  toRemove.forEach[ item |
+    motionActivations.remove( item as DateTime )
+  ]
+  return motionActivations
+]
+
+val Functions$Function1 updateActivityRate = [ List motionActivations |
+  var currentRate = Math::min( 100, motionActivations.size() * 100 / 150 )
+  if( ( activityRate.state as DecimalType ).intValue() != currentRate ) {
+    postUpdate( activityRate, currentRate )
+  }
+]
+
 rule "Wait for Initialization"
 when
   System started
 then
-  logInfo( "motion", "Motion rules wait for rule system initialization..." )
   postUpdate( motionRulesReady, ON )
+  logInfo( "motion", "Motion rules wait for rule system initialization..." )
 end
 
 rule "Kitchen Motion"
@@ -81,11 +115,33 @@ then
   }
 end
 
+rule ""
+when
+  Item activityRate changed
+then
+  if( ( activityRate.state as DecimalType ).intValue() > 50
+  	  && activeScene.state.equals( "IDLE_PERIOD" )
+  	  && !activeRoom.state.equals( "NONE" ) )
+  {
+  	postUpdate( activeScene, "STANDARD" )
+  }
+end
+
 rule "Activation Update"
 when
   Time cron "0/2 * * * * ?"
 then
   if( initialized.state == ON ) {
     updateRoomActivation.apply( mustActivateRoom )
+    updateMotionActivations.apply( motionActivations ) as List
+  }
+end
+
+rule "Activity Rate Update"
+when
+  Time cron "0/10 * * * * ?"
+then
+  if( initialized.state == ON ) {
+    updateActivityRate.apply( motionActivations )
   }
 end

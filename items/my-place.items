@@ -1,9 +1,11 @@
 /* System Start */
 Group INITIALIZATION
-Switch sunRulesReady (INITIALIZATION)
-Switch lightRulesReady (INITIALIZATION)
-Switch motionRulesReady (INITIALIZATION)
-Switch initializeRulesReady (INITIALIZATION)
+  Switch sunRulesReady (INITIALIZATION)
+  Switch lightRulesReady (INITIALIZATION)
+  Switch motionRulesReady (INITIALIZATION)
+  Switch initializeRulesReady (INITIALIZATION)
+  Switch sceneRulesReady (INITIALIZATION)
+  
 Switch initialized
 
 /* Sun Data */
@@ -11,11 +13,11 @@ Number sunHeight
 
 /* Rooms */
 Group ROOMS
-Group KITCHEN (ROOMS)
-Group LIVING_ROOM (ROOMS)
-Group BED_ROOM (ROOMS,autoSwitchOffBedRoom)
-Group BATH_ROOM (ROOMS)
-Group HALL (ROOMS,autoSwitchOffHall)
+  Group KITCHEN (ROOMS)
+  Group LIVING_ROOM (ROOMS)
+  Group BED_ROOM (ROOMS,autoSwitchOffBedRoom)
+  Group BATH_ROOM (ROOMS)
+  Group HALL (ROOMS,autoSwitchOffHall)
 
 String activeRoom
 
@@ -57,8 +59,28 @@ Group allBrightnessHallDimmer (HALL)
       Color colorKitchenCeiling "Farbe" <hue> (kitchenCeiling) {hue="5"}
       Dimmer colorTemperatureKitchenCeiling "Farbtemperatur" <hue> (allColorTemperatureKitchenDimmer) {hue="5;colorTemperature"}
       Dimmer dimmerKitchenCeiling "Dimmer" <hue> (kitchenCeiling,allBrightnessKitchenDimmer) {hue="5;brightness"}
+    Group:Switch:OR(ON, OFF) sinkUplight "Fluter Mitte [(%s)]" <hue> (lightKitchen)
+      Switch switchSinkUplight "Aktivierung" <hue> (sinkUplight,allKitchenLightSwitch) {hue="2"}
+      Color colorSinkUplight "Farbe" <hue> (sinkUplight) {hue="2"}
+      Dimmer colorTemperatureSinkUplight "Farbtemperatur" <hue> (allColorTemperatureKitchenDimmer) {hue="2;colorTemperature"}
+      Dimmer dimmerSinkUplight "Dimmer" <hue> (sinkUplight,allBrightnessKitchenDimmer) {hue="2;brightness"}
 
   Group lightLivingRoom "Wohnzimmer Licht [(%s)]" <hue> (light,livingRoom)
+    Group:Switch:OR(ON, OFF) chimneyUplight "Fluter Kamin [(%s)]" <hue> (lightLivingRoom)
+      Switch switchChimneyUplight "Aktivierung" <hue> (chimneyUplight,allLivingRoomLightSwitch) {hue="3"}
+      Color colorChimneyUplight "Farbe" <hue> (chimneyUplight) {hue="3"}
+      Dimmer colorTemperatureChimneyUplight "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="3;colorTemperature"}
+      Dimmer dimmerChimneyUplight "Dimmer" <hue> (chimneyUplight,allBrightnessLivingRoomDimmer) {hue="3;brightness"}
+    Group:Switch:OR(ON, OFF) windowUplight "Fluter Fenster [(%s)]" <hue> (lightLivingRoom)
+      Switch switchWindowUplight "Aktivierung" <hue> (windowUplight,allLivingRoomLightSwitch) {hue="7"}
+      Color colorWindowUplight "Farbe" <hue> (windowUplight) {hue="7"}
+      Dimmer colorTemperatureWindowUplight "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="7;colorTemperature"}
+      Dimmer dimmerWindowUplight "Dimmer" <hue> (windowUplight,allBrightnessLivingRoomDimmer) {hue="7;brightness"}
+    Group:Switch:OR(ON, OFF) deskUplight "Schreibtisch [(%s)]" <hue> (lightLivingRoom)
+      Switch switchDeskUplight "Aktivierung" <hue> (deskUplight,allLivingRoomLightSwitch) {hue="11"}
+      Color colorDeskUplight "Farbe" <hue> (deskUplight) {hue="11"}
+      Dimmer colorTemperatureDeskUplight "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="11;colorTemperature"}
+      Dimmer dimmerDeskUplight "Dimmer" <hue> (deskUplight,allBrightnessLivingRoomDimmer) {hue="11;brightness"}
     Group fanLightLivingRoom "Ventilator [(%s)]" <hue> (lightLivingRoom)   
       Group:Switch:OR(ON, OFF) fanLightLivingRoomBulb1 "Lampe 1 [(%s)]" <hue> (fanLightLivingRoom)
         Switch switchFanLight1 "Aktivierung" <hue> (fanLightLivingRoomBulb1,allLivingRoomLightSwitch) {hue="1"}
@@ -70,21 +92,6 @@ Group allBrightnessHallDimmer (HALL)
         Color colorFanLight2 "Farbe" <hue> (fanLightLivingRoomBulb2) {hue="6"}
         Dimmer colorTemperatureFanLight2 "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="6;colorTemperature"}
         Dimmer dimmerFanLight2 "Dimmer" <hue> (fanLightLivingRoomBulb2,allBrightnessLivingRoomDimmer) {hue="6;brightness"}
-    Group:Switch:OR(ON, OFF) chimneyUplight "Fluter Kamin [(%s)]" <hue> (lightLivingRoom)
-      Switch switchChimneyUplight "Aktivierung" <hue> (chimneyUplight,allLivingRoomLightSwitch) {hue="3"}
-      Color colorChimneyUplight "Farbe" <hue> (chimneyUplight) {hue="3"}
-      Dimmer colorTemperatureChimneyUplight "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="3;colorTemperature"}
-      Dimmer dimmerChimneyUplight "Dimmer" <hue> (chimneyUplight,allBrightnessLivingRoomDimmer) {hue="3;brightness"}
-    Group:Switch:OR(ON, OFF) centerUplight "Fluter Mitte [(%s)]" <hue> (lightLivingRoom)
-      Switch switchCenterUplight "Aktivierung" <hue> (centerUplight,allLivingRoomLightSwitch) {hue="2"}
-      Color colorCenterUplight "Farbe" <hue> (centerUplight) {hue="2"}
-      Dimmer colorTemperatureCenterUplight "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="2;colorTemperature"}
-      Dimmer dimmerCenterUplight "Dimmer" <hue> (centerUplight,allBrightnessLivingRoomDimmer) {hue="2;brightness"}
-    Group:Switch:OR(ON, OFF) windowUplight "Fluter Fenster [(%s)]" <hue> (lightLivingRoom)
-      Switch switchWindowUplight "Aktivierung" <hue> (windowUplight,allLivingRoomLightSwitch) {hue="7"}
-      Color colorWindowUplight "Farbe" <hue> (windowUplight) {hue="7"}
-      Dimmer colorTemperatureWindowUplight "Farbtemperatur" <hue> (allColorTemperatureLivingRoomDimmer) {hue="7;colorTemperature"}
-      Dimmer dimmerWindowUplight "Dimmer" <hue> (windowUplight,allBrightnessLivingRoomDimmer) {hue="7;brightness"}
 
   Group lightBedRoom "Schlafzimmer Licht [(%s)]" <hue> (light,bedRoom)
     Group:Switch:OR(ON, OFF) bedStand "Nachttisch [(%s)]" <hue> (lightBedRoom)
@@ -111,14 +118,11 @@ Group allBrightnessHallDimmer (HALL)
       Color colorHallCeiling "Farbe" <hue> (hallCeiling) {hue="10;colorTemperature"}
       Dimmer colorTemperatureHallCeiling "Farbtemperatur" <hue> (allColorTemperatureHallDimmer) {hue="10;colorTemperature"}
       Dimmer dimmerHallCeiling "Dimmer" <hue> (hallCeiling,allBrightnessHallDimmer) {hue="10;brightness"}
-    Group:Switch:OR(ON, OFF) hallCeiling2 "Deckenleuchte 2 [(%s)]" <hue> (lightHall)
-      Switch switchHallCeiling2 "Aktivierung" <hue> (hallCeiling2,allHallLightSwitch) {hue="11"}
-      Color colorHallCeiling2 "Farbe" <hue> (hallCeiling2) {hue="11;colorTemperature"}
-      Dimmer colorTemperatureHallCeiling2 "Farbtemperatur" <hue> (allColorTemperatureHallDimmer) {hue="11;colorTemperature"}
-      Dimmer dimmerHallCeiling2 "Dimmer" <hue> (hallCeiling2,allBrightnessHallDimmer) {hue="11;brightness"}
 
 /* Sensors */
 Group sensor "Alle Sensordaten"
+
+Number activityRate
 
   Group sensorKitchen "Küche Sensordaten" <temperature> (sensor,kitchen)
     Contact kitchenMotion "Bewegungsmelder [%s]" <present> (sensorKitchen,motion,KITCHEN) {zwave="2:command=basic"}
@@ -133,10 +137,10 @@ Group sensor "Alle Sensordaten"
     Number livingRoomBattery "Batterie Ladestatus: [%d %%]"	<energy> (sensorLivingRoom) {zwave="3:command=battery"}
 
   Group sensorBedRoom "Schlafzimmer Sensordaten" <temperature> (sensor,bedRoom)
-    Contact bedRoomMotion "Bewegungsmelder [%s]" <present> (sensorBedRoom,motion,BED_ROOM,autoSwitchOffBedRoom) {zwave="4:command=basic"}
-    Number bedRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorBedRoom,BED_ROOM) {zwave="4:command=sensor_multilevel,sensor_type=3"}
-    Number bedRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorBedRoom) {zwave="4:command=sensor_multilevel,sensor_type=1"}
-    Number bedRoomBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorBedRoom) {zwave="4:command=battery"}
+    Contact bedRoomMotion "Bewegungsmelder [%s]" <present> (sensorBedRoom,motion,BED_ROOM,autoSwitchOffBedRoom) {zwave="7:command=basic"}
+    Number bedRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorBedRoom,BED_ROOM) {zwave="7:command=sensor_multilevel,sensor_type=3"}
+    Number bedRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorBedRoom) {zwave="7:command=sensor_multilevel,sensor_type=1"}
+    Number bedRoomBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorBedRoom) {zwave="7:command=battery"}
 
   Group sensorHall "Flur Sensordaten" <temperature> (sensor,hall)
     Contact hallMotion "Bewegungsmelder [%s]" <present> (sensorHall,motion,HALL,autoSwitchOffHall) {zwave="5:command=basic"}
@@ -150,9 +154,23 @@ Group sensor "Alle Sensordaten"
     Number bathRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorBathRoom) {zwave="6:command=sensor_multilevel,sensor_type=1"}
     Number bathRoomBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorBathRoom) {zwave="6:command=battery"}
 
-/* Configuration */
+/* Scenes */
+Group SCENES
+  Group ALL_OFF (SCENES)
+    Group ALL_OFF_BULB_EXCLUSIONS (ALL_OFF)
+  Group STANDARD (SCENES,sceneSelection)
+    Group STANDARD_BULB_EXCLUSIONS (STANDARD)
+  Group IDLE_PERIOD (SCENES)
+    Group IDLE_PERIOD_BULB_EXCLUSIONS (IDLE_PERIOD)
+  Group HOME_CINEMA (SCENES)
+    Group HOME_CINEMA_BULB_EXCLUSIONS (HOME_CINEMA)
+  Group COMPUTER_WORK (SCENES)
+    Group COMPUTER_WORK_BULB_EXCLUSIONS (COMPUTER_WORK)
+ 
 String activeScene
+Group sceneSelection
 
+/* Configuration */
 Number cookingStart
 Number cookingEnd
 

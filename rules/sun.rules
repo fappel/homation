@@ -15,8 +15,8 @@ rule "Wait for Initialization"
 when
   System started
 then
-  logInfo( "sun", "Sun rules wait for rule system initialization..." )
   postUpdate( sunRulesReady, ON )
+  logInfo( "sun", "Sun rules wait for rule system initialization..." )
 end
 
 rule "Set Sun and Dawn States"

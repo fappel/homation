@@ -9,11 +9,14 @@ import java.lang.*
 
 val Functions$Function1 mustIlluminate = [ GroupItem room |
   var roomSwitch = room.members.get( 0 ) as GroupItem
+  var motion = room.members.get( 3 ) as ContactItem
   var lux = room.members.get( 4 ).state
   var luxThreshold = ( room.members.get( 5 ).state as DecimalType ).intValue()
   val isOff = newArrayList( true )
   roomSwitch.members.forEach[ item | isOff.set( 0, isOff.get( 0 ) && ( item.state == Uninitialized || item.state == OFF ) ) ]
-  return activeRoom.state.equals( room.name ) && isOff.get( 0 ) && ( lux == Uninitialized || lux <= luxThreshold )
+  return    ( activeRoom.state.equals( room.name ) || motion.state == OPEN )  
+         && isOff.get( 0 ) 
+         && ( lux == Uninitialized || lux <= luxThreshold )
 ]
 
 val Functions$Function1 mustDarken = [ GroupItem room |
@@ -26,30 +29,30 @@ val Functions$Function1 mustDarken = [ GroupItem room |
   return    !activeRoom.state.equals( room.name ) 
          && motion.state == CLOSED
          && isOn.get( 0 )
-         || ( lux != Uninitialized && lux > luxThreshold )
+         ||    ( lux != Uninitialized && lux > luxThreshold )
             && isOn.get( 0 )
 ]
 
-val Functions$Function3 bulbSwitchStateProvider = [ GroupItem room, SwitchItem item, String switchState |
-  if(    activeScene.state.equals( "HOME_CINEMA" ) 
-  	  && ( item == switchFanLight1 || item == switchFanLight2 || item == switchChimneyUplight ) )
-  {
-  	return OFF	
+val Functions$Function3 bulbSwitchStateProvider = [ GroupItem room, SwitchItem item, OnOffType switchState |
+  var scene = sceneSelection.members.get( 0 ) as GroupItem
+  var switchExclusionList = scene.members.get( 0 ) as GroupItem
+  if( switchExclusionList.members.contains( item ) ) {
+  	return OFF
   }
   return switchState
 ]
 
-val Functions$Function3 switchRoomLight = [ GroupItem room, String switchState, Functions$Function3 bulbSwitchStateProvider |
+val Functions$Function3 switchRoomLight = [ GroupItem room, OnOffType switchState, Functions$Function3 bulbSwitchStateProvider |
   var roomSwitch = room.members.get( 0 ) as GroupItem
-  logInfo( "light", "Switch " + roomSwitch.name + " " + if( switchState == ON ) { ON } else { OFF } )
+  logInfo( "light", "Switch " + roomSwitch.name + " " + switchState )
   roomSwitch.members.forEach[ item |
-  	var actualSwitchState = bulbSwitchStateProvider.apply( room, item, switchState )
+  	var actualSwitchState = bulbSwitchStateProvider.apply( room, item, switchState ) as OnOffType
   	if( item.state != actualSwitchState ) {
-      logInfo( "light", "  Switch bulb" + item.name + " " + if( actualSwitchState == ON ) { ON } else { OFF } )
-      item.sendCommand( if( actualSwitchState == ON ) { ON } else { OFF } )
+      logInfo( "light", "  Switch bulb" + item.name + " " + actualSwitchState )
+      item.sendCommand( actualSwitchState )
   	}
   ]
-  return true
+  return null
 ]
 
 val Functions$Function2 brightnessProvider = [ GroupItem room, DimmerItem item |
@@ -77,13 +80,13 @@ val Functions$Function2 adjustBrightness = [ GroupItem room, Functions$Function2
   roomSwitch.members.forEach[ item | isOn.add( item.state == ON ) ]
   brightnessDimmer.members.forEach[ item |
   	var brightnessValue = ( brightnessProvider.apply( room, item ) as Integer ).intValue()
-  	if( ( item.state as DecimalType ).intValue() != brightnessValue && isOn.remove( 0 ) == true ) {
+  	if( isOn.remove( 0 ) == true && ( item.state as DecimalType ).intValue() != brightnessValue  ) {
       logInfo( "light", "  set brightness of " + item.name + " to " + brightnessValue )
       var PercentType percentage = new PercentType( brightnessValue ) 
       item.sendCommand( percentage )
   	} 
   ]
-  return true
+  return null
 ]
 
 val Functions$Function2 colorTemperatureProvider = [ GroupItem room, DimmerItem item |
@@ -98,13 +101,13 @@ val Functions$Function2 adjustColorTemperature = [ GroupItem room, Functions$Fun
   roomSwitch.members.forEach[ item | isOn.add( item.state == ON ) ]
   temperatureDimmer.members.forEach[ item |
     var int temperatureValue = ( colorTemperatureProvider.apply( room, item ) as Integer ).intValue()
-  	if( ( item.state as DecimalType ).intValue() != temperatureValue && isOn.remove( 0 ) == true ) {
+    if( isOn.remove( 0 ) == true && ( item.state as DecimalType ).intValue() != temperatureValue ) {
       logInfo( "light", "  set color temperature of " + item.name + " to " + temperatureValue )
       var PercentType percentage = new PercentType( temperatureValue ) 
       item.sendCommand( percentage )
   	}
   ]
-  return true
+  return null
 ]
 
 val Functions$Function0 switchOffActiveRoomLightsOnTimeout = [|
@@ -119,6 +122,9 @@ val Functions$Function0 switchOffActiveRoomLightsOnTimeout = [|
     if( activeRoom.state.equals( room.name ) && motion.state == CLOSED && autoSwitch.state == ON ) {
       if( timeoutValue >= timeoutDefinition ) { 
         postUpdate( activeRoom, "NONE" )
+        if( !activeScene.state.equals( "IDLE_PERIOD" ) ) {
+          postUpdate( activeScene, "IDLE_PERIOD" )
+        }
       } else {
         newTimeoutValue = timeoutValue + 2
       }
@@ -127,15 +133,21 @@ val Functions$Function0 switchOffActiveRoomLightsOnTimeout = [|
       postUpdate( roomAutoSwitch.members.get( 4 ), newTimeoutValue )
     }
   ]
-  return true  
+  return null  
+]
+
+val Functions$Function1 resetSwitchOffActiveRoomLightTimeout = [ GroupItem room |
+  if( ( room.members.get( 4 ).state as DecimalType ).intValue() != 0 ) {
+    postUpdate( room.members.get( 4 ), 0 )
+  } 
 ]
 
 rule "Wait for Initialization"
 when
   System started
 then
-  logInfo( "light", "Light rules wait for rule system initialization..." )
   postUpdate( lightRulesReady, ON )
+  logInfo( "light", "Light rules wait for rule system initialization..." )
 end
 
 rule "Room Activation"
@@ -150,11 +162,7 @@ then
     }
   ]
   
-  AUTO_SWITCH_OFF.members.forEach[ item |
-  	if( ( ( item as GroupItem ).members.get( 4 ).state as DecimalType ).intValue() != 0 ) {
-      postUpdate( ( item as GroupItem ).members.get( 4 ), 0 )
-  	} 
-  ]
+  AUTO_SWITCH_OFF.members.forEach[ room | resetSwitchOffActiveRoomLightTimeout.apply( room ) ]
 end
 
 rule "Periodical Bulb Updates"
@@ -196,19 +204,6 @@ then
   }
 end
 
-rule "Scene Activation"
-when
-  Item activeScene changed
-then
-  logInfo( "light", "Activate scene " + activeScene.state )
-
-  ROOMS.members.forEach[ room |
-    if( activeRoom.state.equals( room.name ) ) {
-      switchRoomLight.apply( room, OFF, bulbSwitchStateProvider )
-    }
-  ]
-end
-
 rule "Brightness Adjustment"
 when
   Item brightness changed
@@ -236,4 +231,15 @@ when
   Item colorTemperature changed
 then
   ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
+end
+
+rule "Scene Activation"
+when
+  Item activeScene changed
+then
+  logInfo( "light", "Switch bulbs for scene " + activeScene.state )
+
+  ROOMS.members.forEach[ room |
+    switchRoomLight.apply( room, OFF, bulbSwitchStateProvider )
+  ]
 end

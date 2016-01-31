@@ -1,5 +1,11 @@
 sitemap my_place label="Zuhause" {
   
+  Frame label="Kontrollzentrum" {
+  	Text item=activeRoom label="Aktives Zimmer [%s]" icon="info"
+  	Text item=activityRate label="Aktivitätsrate [%.0f %%]" icon="line"
+    Selection item=activeScene label="Szenen" icon="sofa" mappings=[ "ALL_OFF"="Alles Aus", "STANDARD"="Standard", "IDLE_PERIOD"="Ruhezeit", "HOME_CINEMA"="Heimkino", "COMPUTER_WORK"="Arbeiten am Rechner" ]
+  }
+
   Frame label="Räume" {
   	Group item=kitchen 
   	Group item=livingRoom
@@ -25,8 +31,6 @@ sitemap my_place label="Zuhause" {
       Slider item=colorTemperature label="Statisch: [%d %%]" visibility=[autoColorTemperature==OFF]
   	}
   	
-    Selection item=activeScene label="Szenen" icon="sofa" mappings=[ "STANDARD"="Standard", "HOME_CINEMA"="Heimkino", "COMPUTER_WORK"="Arbeiten am Rechner" ]
-  	
   	Text label="Kochzeiten" icon="clock-on" {
       Setpoint item=cookingStart label="Anfang [%2d:00 Uhr]" minValue=0 maxValue=23 step=1
       Setpoint item=cookingEnd label="Ende [%2d:00 Uhr]" minValue=1 maxValue=24 step=1
@@ -38,7 +42,6 @@ sitemap my_place label="Zuhause" {
   	}
   	
   	Text label="Lichtabschaltung" icon="clock-on" {
-      Switch item=activeRoom label="Alles aus" mappings=[ "NONE"="AUS" ]
       Switch item=autoSwitchOffBedRoomLight label="Schlafzimmer" icon="bedroom"
       Setpoint item=autoSwitchOffBedRoomLightTimeout label="Ausschalten nach [%d] Sekunden" visibility=[autoSwitchOffBedRoomLight==ON] minValue=25 maxValue=120 step=1 icon="clock-on"
       Switch item=autoSwitchOffHallLight label="Flur" icon="corridor"

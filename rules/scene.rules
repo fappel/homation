@@ -1,0 +1,70 @@
+import org.openhab.core.library.types.*
+import org.openhab.core.library.items.*
+import org.openhab.core.items.*
+import org.openhab.core.types.*
+
+import org.eclipse.xtext.xbase.lib.*
+
+val Functions$Function0 defineBulbExclusions = [|
+  ROOMS.members.forEach[ roomItem |
+    var room = roomItem as GroupItem
+    var roomSwitch = room.members.get( 0 ) as GroupItem
+    roomSwitch.members.forEach[ switchItem | ALL_OFF_BULB_EXCLUSIONS.members.add( switchItem ) ]
+  ]
+  
+  IDLE_PERIOD_BULB_EXCLUSIONS.members.addAll(
+  	newArrayList( switchFanLight1, switchFanLight2, switchDeskUplight, switchBedRoomCeiling, switchKitchenCeiling )
+  )
+
+  IDLE_PERIOD_BULB_EXCLUSIONS.members.addAll(
+  	newArrayList( switchFanLight1, switchFanLight2, switchDeskUplight, switchBedRoomCeiling, switchKitchenCeiling )
+  )
+  
+  HOME_CINEMA_BULB_EXCLUSIONS.members.addAll(
+  	newArrayList( switchFanLight1, switchFanLight2, switchDeskUplight )
+  )
+
+  COMPUTER_WORK_BULB_EXCLUSIONS.members.addAll(
+  	newArrayList( switchFanLight1, switchFanLight2, switchWindowUplight )
+  )
+  return null	
+]
+
+val Functions$Function0 clearBulbExclusions = [|
+  SCENES.members.forEach[ sceneDefinition |
+  	( sceneDefinition as GroupItem ).members.forEach[ setting |
+      ( setting as GroupItem ).members.clear
+  	]
+  ]
+  return null
+]
+
+val Functions$Function0 selectScene = [|
+  SCENES.members.forEach[ sceneDefinition |
+    if( sceneDefinition.name.equals( activeScene.state.toString ) ) {
+      sceneSelection.members.set( 0, sceneDefinition )
+  	}
+  ]
+  return null
+]
+
+rule "Wait for Initialization"
+when
+  System started
+then
+  clearBulbExclusions.apply()
+  defineBulbExclusions.apply()
+  postUpdate( sceneRulesReady, ON )
+  logInfo( "scene", "Scene rules wait for rule system initialization..." )
+end
+
+rule "Scene Activation"
+when
+  Item activeScene changed
+then
+  logInfo( "Scene", "Select scene " + activeScene.state )
+
+  if( initialized.state == ON ) {
+    selectScene.apply()
+  }
+end

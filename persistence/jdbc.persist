@@ -8,6 +8,7 @@ Strategies {
 Items {
   sunHeight : strategy = everyChange
   activeRoom : strategy = everyChange
+  activityRate : strategy = everyChange
   activeScene : strategy = everyChange, restoreOnStartup
   brightness : strategy = everyChange
   autoBrightness : strategy = everyChange, restoreOnStartup
