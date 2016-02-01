@@ -5,6 +5,10 @@ import org.openhab.core.types.*
 
 import org.eclipse.xtext.xbase.lib.*
 
+import java.util.concurrent.locks.*
+
+val Lock lock = new ReentrantLock()
+
 val Functions$Function0 defineBulbExclusions = [|
   ROOMS.members.forEach[ roomItem |
     var room = roomItem as GroupItem
@@ -63,20 +67,32 @@ rule "Wait for Initialization"
 when
   System started
 then
-  clearBulbExclusions.apply()
-  defineBulbExclusions.apply()
-  defineIlluminateAllLightTimeouts.apply()
-  postUpdate( sceneRulesReady, ON )
-  logInfo( "scene", "Scene rules wait for rule system initialization..." )
+  lock.lock
+  try {
+    clearBulbExclusions.apply()
+    defineBulbExclusions.apply()
+    defineIlluminateAllLightTimeouts.apply()
+    postUpdate( sceneRulesReady, ON )
+    logInfo( "scene", "Scene rules wait for rule system initialization..." )
+  } finally {
+    lock.unlock	
+  }
 end
 
 rule "Scene Activation"
 when
   Item activeScene changed
 then
-  logInfo( "Scene", "Select scene " + activeScene.state )
-
   if( initialized.state == ON ) {
-    selectScene.apply()
+    lock.lock
+    try {
+      logInfo( "Scene", "Select scene " + activeScene.state )
+
+      if( initialized.state == ON ) {
+        selectScene.apply()
+      }
+    } finally {
+      lock.unlock	
+    }
   }
 end

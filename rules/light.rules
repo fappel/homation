@@ -6,6 +6,9 @@ import org.openhab.core.types.*
 import org.eclipse.xtext.xbase.lib.*
 
 import java.lang.*
+import java.util.concurrent.locks.*
+
+val Lock lock = new ReentrantLock()
 
 val Functions$Function1 mustIlluminate = [ GroupItem room |
   var roomSwitch = room.members.get( 0 ) as GroupItem
@@ -51,7 +54,7 @@ val Functions$Function3 switchRoomLight = [ GroupItem room, OnOffType switchStat
   roomSwitch.members.forEach[ item |
   	var actualSwitchState = bulbSwitchStateProvider.apply( room, item, switchState ) as OnOffType
   	if( item.state != actualSwitchState ) {
-      logInfo( "light", "  Switch bulb" + item.name + " " + actualSwitchState )
+      logInfo( "light", "  Switch bulb " + item.name + " " + actualSwitchState )
       item.sendCommand( actualSwitchState )
   	}
   ]
@@ -60,23 +63,23 @@ val Functions$Function3 switchRoomLight = [ GroupItem room, OnOffType switchStat
 
 val Functions$Function2 brightnessProvider = [ GroupItem room, DimmerItem item |
   var hourOfDay = now.getHourOfDay.intValue()
-  if(    room.name.equals( KITCHEN.name ) 
+  if(    room.equals( KITCHEN ) 
   	  && hourOfDay >= ( cookingStart.state as DecimalType ).intValue() 
   	  && hourOfDay < ( cookingEnd.state as DecimalType ).intValue() )
   {
-  	return Integer::valueOf( 100 )
+  	return Integer::valueOf( 99 )
   }
-  if(    room.name.equals( BATH_ROOM.name ) 
+  if(    room.equals( BATH_ROOM ) 
   	  && hourOfDay >= ( morningStart.state as DecimalType ).intValue() 
   	  && hourOfDay < ( morningEnd.state as DecimalType ).intValue() )
   {
-  	return Integer::valueOf( 100 )
+  	return Integer::valueOf( 99 )
   }
   return ( brightness.state as DecimalType ).intValue()
 ]
 
 val Functions$Function2 adjustBrightness = [ GroupItem room, Functions$Function2 brightnessProvider |
-  if( !activeRoom.state.equals( room.name ) ) { return false }
+  if( !activeRoom.state.equals( room.name ) ) { return null }
   var roomSwitch = room.members.get( 0 ) as GroupItem
   var brightnessDimmer = room.members.get( 2 ) as GroupItem
   val isOn = newArrayList()
@@ -97,7 +100,7 @@ val Functions$Function2 colorTemperatureProvider = [ GroupItem room, DimmerItem 
 ]
 
 val Functions$Function2 adjustColorTemperature = [ GroupItem room, Functions$Function2 colorTemperatureProvider |
-  if( !activeRoom.state.equals( room.name ) ) { return false }
+  if( !activeRoom.state.equals( room.name ) ) { return null }
   var roomSwitch = room.members.get( 0 ) as GroupItem
   var temperatureDimmer = room.members.get( 1 ) as GroupItem
   val isOn = newArrayList()
@@ -163,49 +166,68 @@ rule "Wait for Initialization"
 when
   System started
 then
-  postUpdate( lightRulesReady, ON )
-  logInfo( "light", "Light rules wait for rule system initialization..." )
+  lock.lock
+  try {
+    postUpdate( lightRulesReady, ON )
+    logInfo( "light", "Light rules wait for rule system initialization..." )
+  } finally {
+    lock.unlock	
+  }
 end
 
 rule "Room Activation"
 when
   Item activeRoom changed
 then
-  logInfo( "light", "Activate room " + activeRoom.state )
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      logInfo( "light", "Activate room " + activeRoom.state )
 
-  ROOMS.members.forEach[ room |
-    if( mustIlluminate.apply( room ) as Boolean ) {
-      initializeIlluminateAllRoomsTimeout.apply()
-      switchRoomLight.apply( room, ON, bulbSwitchStateProvider )
+      ROOMS.members.forEach[ room |
+        if( mustIlluminate.apply( room ) as Boolean ) {
+          initializeIlluminateAllRoomsTimeout.apply()
+          switchRoomLight.apply( room, ON, bulbSwitchStateProvider )
+        }
+      ]
+
+      AUTO_SWITCH_OFF.members.forEach[ room | resetSwitchOffActiveRoomLightTimeout.apply( room ) ]
+    } finally {
+      lock.unlock	
     }
-  ]
-  
-  AUTO_SWITCH_OFF.members.forEach[ room | resetSwitchOffActiveRoomLightTimeout.apply( room ) ]
+  }
 end
 
 rule "Periodical Bulb Updates"
 when
   Time cron "0/2 * * * * ?"
 then
-  if( initialized.state == ON ) { 
-    ROOMS.members.forEach[ room |
-      if( mustIlluminate.apply( room ) as Boolean ) {
-        switchRoomLight.apply( room, ON, bulbSwitchStateProvider )
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if( initialized.state == ON ) { 
+        ROOMS.members.forEach[ room |
+          if( mustIlluminate.apply( room ) as Boolean ) {
+            switchRoomLight.apply( room, ON, bulbSwitchStateProvider )
+          }
+        ]
+        ROOMS.members.forEach[ room |
+          if( mustDarken.apply( room ) as Boolean ) {
+            switchRoomLight.apply( room, OFF, bulbSwitchStateProvider )
+          }
+        ]
+        if( brightness.state != Undefined ) {
+          ROOMS.members.forEach[ room | adjustBrightness.apply( room, brightnessProvider ) ]
+        }
+        if( colorTemperature.state != Undefined ) {
+          ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
+        }
+        switchOffActiveRoomLightsOnTimeout.apply()
+        updateIlluminateAllRoomsTimeout.apply()    
       }
-    ]
-    ROOMS.members.forEach[ room |
-      if( mustDarken.apply( room ) as Boolean ) {
-        switchRoomLight.apply( room, OFF, bulbSwitchStateProvider )
-      }
-    ]
-    if( brightness.state != Undefined ) {
-      ROOMS.members.forEach[ room | adjustBrightness.apply( room, brightnessProvider ) ]
+    } finally {
+      lock.unlock	
     }
-    if( colorTemperature.state != Undefined ) {
-      ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
-    }
-    switchOffActiveRoomLightsOnTimeout.apply()
-    updateIlluminateAllRoomsTimeout.apply()    
   }
 end
 
@@ -213,13 +235,20 @@ rule "Brightness Calculation"
 when
   Item sunHeight changed
 then
-  if( autoBrightness.state == ON ) {
-    var factor = Math::min( 3.33, Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 51.85 ) ) )
-    var value = Math::max( 5, Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 18 ) * factor ), 100.0 ) ).intValue()
-    if( brightness.state != value ) {
-      logInfo( "light", "Update Brightness: " + value )
-      postUpdate( brightness, value )
-    } 
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if( autoBrightness.state == ON ) {
+        var factor = Math::min( 3.33, Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 51.85 ) ) )
+        var value = Math::max( 5, Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 18 ) * factor ), 100.0 ) ).intValue()
+        if( brightness.state != value ) {
+          logInfo( "light", "Update Brightness: " + value )
+          postUpdate( brightness, value )
+        } 
+      }
+    } finally {
+      lock.unlock	
+    }
   }
 end
 
@@ -227,20 +256,34 @@ rule "Brightness Adjustment"
 when
   Item brightness changed
 then
-  ROOMS.members.forEach[ room | adjustBrightness.apply( room, brightnessProvider ) ]
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      ROOMS.members.forEach[ room | adjustBrightness.apply( room, brightnessProvider ) ]
+    } finally {
+      lock.unlock	
+    }
+  }
 end
 
 rule "Color Temperature Calculation"
 when
   Item sunHeight changed
 then
-  if( autoColorTemperature.state == ON ) {
-    var factor = Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 31 ) )
-    var value = Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 7 ) * factor ), 100.0 )
-    var temperature = ( 100.0 - Math::max( 0.0, value ) ).intValue()
-    if( colorTemperature.state != temperature ) {  	
-      logInfo( "light", "Update Color Temperature: " + temperature )
-      postUpdate( colorTemperature, temperature )
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if( autoColorTemperature.state == ON ) {
+        var factor = Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 31 ) )
+        var value = Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 7 ) * factor ), 100.0 )
+        var temperature = ( 100.0 - Math::max( 0.0, value ) ).intValue()
+        if( colorTemperature.state != temperature ) {  	
+          logInfo( "light", "Update Color Temperature: " + temperature )
+          postUpdate( colorTemperature, temperature )
+        }
+      }
+    } finally {
+      lock.unlock	
     }
   }
 end
@@ -249,16 +292,30 @@ rule "Color Temperature Adjustment"
 when
   Item colorTemperature changed
 then
-  ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
+    } finally {
+      lock.unlock	
+    }
+  }
 end
 
 rule "Scene Activation"
 when
   Item activeScene changed
 then
-  logInfo( "light", "Switch bulbs for scene " + activeScene.state )
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      logInfo( "light", "Switch bulbs for scene " + activeScene.state )
 
-  ROOMS.members.forEach[ room |
-    switchRoomLight.apply( room, OFF, bulbSwitchStateProvider )
-  ]
+      ROOMS.members.forEach[ room |
+        switchRoomLight.apply( room, OFF, bulbSwitchStateProvider )
+      ]
+    } finally {
+      lock.unlock	
+    }
+  }
 end

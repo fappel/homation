@@ -1,6 +1,10 @@
 import org.openhab.core.library.types.*
 import java.lang.Math
 
+import java.util.concurrent.locks.*
+
+val Lock lock = new ReentrantLock()
+
 // Constants
 var Number K = 0.017453
 
@@ -15,8 +19,13 @@ rule "Wait for Initialization"
 when
   System started
 then
-  postUpdate( sunRulesReady, ON )
-  logInfo( "sun", "Sun rules wait for rule system initialization..." )
+  lock.lock
+  try {
+    postUpdate( sunRulesReady, ON )
+    logInfo( "sun", "Sun rules wait for rule system initialization..." )
+  } finally {
+    lock.unlock	
+  }
 end
 
 rule "Set Sun and Dawn States"
@@ -47,6 +56,11 @@ then
     var x = Math::sin((K * latitude).doubleValue()) * Math::sin((K * deklination).doubleValue()) + Math::cos((K * latitude).doubleValue()) * Math::cos((K * deklination).doubleValue()) * Math::cos((K * stundenwinkel).doubleValue())
     var sonnenhoehe = Math::asin(x.doubleValue) / K
 
-    sunHeight.postUpdate(sonnenhoehe)
+    lock.lock
+    try {
+      sunHeight.postUpdate(sonnenhoehe)
+    } finally {
+      lock.unlock	
+    }
   }
 end

@@ -1,95 +1,109 @@
 import org.openhab.core.library.types.*
 
+import org.eclipse.xtext.xbase.lib.*
+
+import java.util.concurrent.locks.*
+
+val Lock lock = new ReentrantLock()
+
+val Functions$Function0 initialize = [|
+  if( sunHeight.lastUpdate == null ) {
+    postUpdate( sunHeight, -50.0 )
+  }
+  if( activeRoom.lastUpdate == null ) {
+    postUpdate( activeRoom, "NONE" )
+  }
+  if( brightness.lastUpdate == null ) {
+	postUpdate( brightness, new PercentType( 50 ) )
+  }
+  if( autoBrightness.lastUpdate == null ) {
+    postUpdate( autoBrightness, ON )
+  }
+  if( colorTemperature.lastUpdate == null ) {
+    postUpdate( colorTemperature, new PercentType( 50 ) )
+  }
+  if( autoColorTemperature.lastUpdate == null ) {
+    postUpdate( autoColorTemperature, ON )
+  }
+  if( cookingStart.lastUpdate == null ) {
+    postUpdate( cookingStart, 18 )
+  }
+  if( cookingEnd.lastUpdate == null ) {
+    postUpdate( cookingEnd, 21 )
+  }
+  if( morningStart.lastUpdate == null ) {
+    postUpdate( morningStart, 5 )
+  }
+  if( morningEnd.lastUpdate == null ) {
+    postUpdate( morningEnd, 8 )
+  }
+  if( hallLightOnThreshold.lastUpdate == null ) {
+    postUpdate( hallLightOnThreshold, 50 )
+  }
+  if( hallLightOffThreshold.lastUpdate == null ) {
+    postUpdate( hallLightOffThreshold, 400 )
+  }
+  if( kitchenLightOnThreshold.lastUpdate == null ) {
+    postUpdate( kitchenLightOnThreshold, 50 )
+  }
+  if( kitchenLightOffThreshold.lastUpdate == null ) {
+    postUpdate( kitchenLightOffThreshold, 400 )
+  }
+  if( bathRoomLightOnThreshold.lastUpdate == null ) {
+    postUpdate( bathRoomLightOnThreshold, 50 )
+  }
+  if( bathRoomLightOffThreshold.lastUpdate == null ) {
+    postUpdate( bathRoomLightOffThreshold, 400 )
+  }
+  if( livingRoomLightOnThreshold.lastUpdate == null ) {
+    postUpdate( livingRoomLightOnThreshold, 50 )
+  }
+  if( livingRoomLightOffThreshold.lastUpdate == null ) {
+    postUpdate( livingRoomLightOffThreshold, 400 )
+  }
+  if( bedRoomLightOnThreshold.lastUpdate == null ) {
+    postUpdate( bedRoomLightOnThreshold, 50 )
+  }
+  if( bedRoomLightOffThreshold.lastUpdate == null ) {
+    postUpdate( bedRoomLightOffThreshold, 400 )
+  }
+  if( autoSwitchOffBedRoomLight.lastUpdate == null ) {
+    postUpdate( autoSwitchOffBedRoomLight, ON )
+  }
+  if( autoSwitchOffBedRoomLightTimeout.lastUpdate == null ) {
+    postUpdate( autoSwitchOffBedRoomLightTimeout, 40 )
+  }
+  postUpdate( autoSwitchOffBedRoomLightTimeoutValue, 0 )
+  if( autoSwitchOffHallLight.lastUpdate == null ) {
+    postUpdate( autoSwitchOffHallLight, ON )
+  }
+  if( autoSwitchOffHallLightTimeout.lastUpdate == null ) {
+    postUpdate( autoSwitchOffHallLightTimeout, 40 )
+  }
+  if( activeScene.lastUpdate == null ) {
+    postUpdate( activeScene, "STANDARD" )
+  }
+  postUpdate( illuminateAllRoomsTimeout, 0 )
+  postUpdate( activityRate, 100 )
+  postUpdate( autoSwitchOffHallLightTimeoutValue, 0 )
+  postUpdate( initializeRulesReady, ON )
+]
+
 rule "Initialize"
 when
   System started
 then
-  postUpdate( initialized, OFF )
-  postUpdate( initializeRulesReady, OFF )
-
-  createTimer( now.plusSeconds( 20 ) ) [|
-    if( sunHeight.lastUpdate == null ) {
-      postUpdate( sunHeight, -50.0 )
-    }
-    if( activeRoom.lastUpdate == null ) {
-      postUpdate( activeRoom, "NONE" )
-    }
-    if( brightness.lastUpdate == null ) {
-	  postUpdate( brightness, new PercentType( 50 ) )
-    }
-    if( autoBrightness.lastUpdate == null ) {
-	  postUpdate( autoBrightness, ON )
-    }
-    if( colorTemperature.lastUpdate == null ) {
-      postUpdate( colorTemperature, new PercentType( 50 ) )
-    }
-    if( autoColorTemperature.lastUpdate == null ) {
-      postUpdate( autoColorTemperature, ON )
-    }
-    if( cookingStart.lastUpdate == null ) {
-      postUpdate( cookingStart, 18 )
-    }
-    if( cookingEnd.lastUpdate == null ) {
-      postUpdate( cookingEnd, 21 )
-    }
-    if( morningStart.lastUpdate == null ) {
-      postUpdate( morningStart, 5 )
-    }
-    if( morningEnd.lastUpdate == null ) {
-      postUpdate( morningEnd, 8 )
-    }
-    if( hallLightOnThreshold.lastUpdate == null ) {
-      postUpdate( hallLightOnThreshold, 50 )
-    }
-    if( hallLightOffThreshold.lastUpdate == null ) {
-      postUpdate( hallLightOffThreshold, 400 )
-    }
-    if( kitchenLightOnThreshold.lastUpdate == null ) {
-      postUpdate( kitchenLightOnThreshold, 50 )
-    }
-    if( kitchenLightOffThreshold.lastUpdate == null ) {
-      postUpdate( kitchenLightOffThreshold, 400 )
-    }
-    if( bathRoomLightOnThreshold.lastUpdate == null ) {
-      postUpdate( bathRoomLightOnThreshold, 50 )
-    }
-    if( bathRoomLightOffThreshold.lastUpdate == null ) {
-      postUpdate( bathRoomLightOffThreshold, 400 )
-    }
-    if( livingRoomLightOnThreshold.lastUpdate == null ) {
-      postUpdate( livingRoomLightOnThreshold, 50 )
-    }
-    if( livingRoomLightOffThreshold.lastUpdate == null ) {
-      postUpdate( livingRoomLightOffThreshold, 400 )
-    }
-    if( bedRoomLightOnThreshold.lastUpdate == null ) {
-      postUpdate( bedRoomLightOnThreshold, 50 )
-    }
-    if( bedRoomLightOffThreshold.lastUpdate == null ) {
-      postUpdate( bedRoomLightOffThreshold, 400 )
-    }
-    if( autoSwitchOffBedRoomLight.lastUpdate == null ) {
-      postUpdate( autoSwitchOffBedRoomLight, ON )
-    }
-    if( autoSwitchOffBedRoomLightTimeout.lastUpdate == null ) {
-      postUpdate( autoSwitchOffBedRoomLightTimeout, 40 )
-    }
-    postUpdate( autoSwitchOffBedRoomLightTimeoutValue, 0 )
-    if( autoSwitchOffHallLight.lastUpdate == null ) {
-      postUpdate( autoSwitchOffHallLight, ON )
-    }
-    if( autoSwitchOffHallLightTimeout.lastUpdate == null ) {
-      postUpdate( autoSwitchOffHallLightTimeout, 40 )
-    }
-    if( activeScene.lastUpdate == null ) {
-      postUpdate( activeScene, "STANDARD" )
-    }
-    postUpdate( illuminateAllRoomsTimeout, 0 )
-    postUpdate( activityRate, 100 )
-    postUpdate( autoSwitchOffHallLightTimeoutValue, 0 )
-    postUpdate( initializeRulesReady, ON )
-    logInfo( "initialize", "Initialize rules wait for rule system initialization..." )
-  ]
+  lock.lock
+  try {
+    postUpdate( initialized, OFF )
+    postUpdate( initializeRulesReady, OFF )
+    createTimer( now.plusSeconds( 20 ) ) [|
+      initialize.apply()
+      logInfo( "initialize", "Initialize rules wait for rule system initialization..." )
+    ]
+  } finally {
+    lock.unlock	
+  }
 end
 
 rule "Initialization Verification"
@@ -97,10 +111,16 @@ when
   Time cron "0/2 * * * * ?"
 then
   if( initializeRulesReady.state == ON ) { 
-    val isReady = newArrayList( true )
-    INITIALIZATION.members.forEach[ item | isReady.set( 0, isReady.get( 0 ) && item.state == ON ) ]
-    if( initialized.state != if( isReady.get( 0 ) ) { ON } else { OFF } ) {
-      postUpdate( initialized, if( isReady.get( 0 ) ) { ON } else { OFF } )
+    lock.lock
+    try {
+      val isReady = newArrayList( true )
+      INITIALIZATION.members.forEach[ item | isReady.set( 0, isReady.get( 0 ) && item.state == ON ) ]
+      val readyState = if( isReady.get( 0 ) ) { ON } else { OFF }
+      if( !initialized.state.equals( readyState ) ){
+        postUpdate( initialized, readyState )
+      }
+    } finally {
+      lock.unlock	
     }
   }
 end
@@ -109,9 +129,14 @@ rule "Initialization Change"
 when
   Item initialized changed
 then
-  if( initialized.state == ON ) {
-    logInfo( "initialize", "Rule system is initialized" )
-  } else {
-    logInfo( "initialize", "Rule system is waiting for initialization" )
+  lock.lock
+  try {
+    if( initialized.state == ON ) {
+      logInfo( "initialize", "Rule system is initialized" )
+    } else {
+      logInfo( "initialize", "Rule system is waiting for initialization" )
+    }
+  } finally {
+    lock.unlock	
   }
 end

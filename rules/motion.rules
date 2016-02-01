@@ -8,7 +8,9 @@ import org.joda.time.*
 
 import java.lang.*
 import java.util.*
+import java.util.concurrent.locks.*
 
+val Lock lock = new ReentrantLock()
 val List motionActivations = newArrayList()
 
 val Functions$Function1 mustActivateRoom = [ GroupItem room |
@@ -66,16 +68,28 @@ rule "Wait for Initialization"
 when
   System started
 then
-  postUpdate( motionRulesReady, ON )
-  logInfo( "motion", "Motion rules wait for rule system initialization..." )
+  lock.lock
+  try {
+    postUpdate( motionRulesReady, ON )
+    logInfo( "motion", "Motion rules wait for rule system initialization..." )
+  } finally {
+    lock.unlock	
+  }
 end
 
 rule "Kitchen Motion"
 when
   Item kitchenMotion changed
 then
-  if( kitchenMotion.state == OPEN && !activeRoom.state.equals( KITCHEN.name ) ) {
-    postUpdate( activeRoom, KITCHEN.name )
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if( kitchenMotion.state == OPEN && !activeRoom.state.equals( KITCHEN.name ) ) {
+        postUpdate( activeRoom, KITCHEN.name )
+      }
+    } finally {
+      lock.unlock	
+    }
   }
 end
 
@@ -83,8 +97,15 @@ rule "Living Room Motion"
 when
   Item livingRoomMotion changed
 then
-  if( livingRoomMotion.state == OPEN && !activeRoom.state.equals( LIVING_ROOM.name ) ) {
-    postUpdate( activeRoom, LIVING_ROOM.name )
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if( livingRoomMotion.state == OPEN && !activeRoom.state.equals( LIVING_ROOM.name ) ) {
+        postUpdate( activeRoom, LIVING_ROOM.name )
+      }
+    } finally {
+      lock.unlock	
+    }
   }
 end
 
@@ -92,8 +113,15 @@ rule "Bedroom Motion"
 when
   Item bedRoomMotion changed
 then
-  if( bedRoomMotion.state == OPEN && !activeRoom.state.equals( BED_ROOM.name ) ) {
-    postUpdate( activeRoom, BED_ROOM.name )
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if( bedRoomMotion.state == OPEN && !activeRoom.state.equals( BED_ROOM.name ) ) {
+        postUpdate( activeRoom, BED_ROOM.name )
+      }
+    } finally {
+      lock.unlock	
+    }
   }
 end
 
@@ -101,8 +129,15 @@ rule "Bathroom Motion"
 when
   Item bathRoomMotion changed
 then
-  if( bathRoomMotion.state == OPEN && !activeRoom.state.equals( BATH_ROOM.name ) ) {
-    postUpdate( activeRoom, BATH_ROOM.name )
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if( bathRoomMotion.state == OPEN && !activeRoom.state.equals( BATH_ROOM.name ) ) {
+        postUpdate( activeRoom, BATH_ROOM.name )
+      }
+    } finally {
+      lock.unlock	
+    }
   }
 end
 
@@ -110,8 +145,15 @@ rule "Hall Motion"
 when
   Item hallMotion changed
 then
-  if( hallMotion.state == OPEN && !activeRoom.state.equals( HALL.name ) ) {
-    postUpdate( activeRoom, HALL.name )
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if( hallMotion.state == OPEN && !activeRoom.state.equals( HALL.name ) ) {
+        postUpdate( activeRoom, HALL.name )
+      }
+    } finally {
+      lock.unlock	
+    }
   }
 end
 
@@ -119,12 +161,19 @@ rule "Activity Rate Gain"
 when
   Item activityRate changed
 then
-  if( ( activityRate.state as DecimalType ).intValue() > 50
-  	  && sceneSelection.members.get( 0 ).equals( IDLE_PERIOD )
-  	  && !activeRoom.state.equals( "NONE" ) )
-  {
-  	postUpdate( activeScene, STANDARD.name )
-  	postUpdate( illuminateAllRoomsTimeout, 0 )
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if(   ( activityRate.state as DecimalType ).intValue() > 50
+          && sceneSelection.members.get( 0 ).equals( IDLE_PERIOD )
+  	      && !activeRoom.state.equals( "NONE" ) )
+      {
+  	    postUpdate( activeScene, STANDARD.name )
+  	    postUpdate( illuminateAllRoomsTimeout, 0 )
+      }
+    } finally {
+      lock.unlock	
+    }
   }
 end
 
@@ -133,8 +182,13 @@ when
   Time cron "0/2 * * * * ?"
 then
   if( initialized.state == ON ) {
-    updateRoomActivation.apply( mustActivateRoom )
-    updateMotionActivations.apply( motionActivations ) as List
+    lock.lock
+    try {
+      updateRoomActivation.apply( mustActivateRoom )
+      updateMotionActivations.apply( motionActivations ) as List
+    } finally {
+      lock.unlock	
+    }
   }
 end
 
@@ -143,6 +197,11 @@ when
   Time cron "0/10 * * * * ?"
 then
   if( initialized.state == ON ) {
-    updateActivityRate.apply( motionActivations )
+    lock.lock
+    try {
+      updateActivityRate.apply( motionActivations )
+    } finally {
+      lock.unlock	
+    }
   }
 end
