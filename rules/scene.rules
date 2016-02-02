@@ -34,12 +34,23 @@ val Functions$Function0 defineBulbExclusions = [|
   return null	
 ]
 
-val Functions$Function0 defineIlluminateAllLightTimeouts = [|
+val Functions$Function0 defineIlluminateAllRoomsTimeouts = [|
   SCENES.members.forEach[ sceneDefinition |
   	postUpdate( ( sceneDefinition as GroupItem ).members.get( 1 ), 0 )
   ]
   
   postUpdate( IDLE_PERIOD_ILLUMINATE_ALL_ROOMS_TIMEOUT, 20 )
+  return null
+]
+
+val Functions$Function0 defineBrightnessBoostOnHighActivity = [|
+  SCENES.members.forEach[ sceneDefinition |
+  	postUpdate( ( sceneDefinition as GroupItem ).members.get( 2 ), 0 )
+  ]
+  
+  postUpdate( STANDARD_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY, 20 )
+  postUpdate( COMPUTER_WORK_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY, 20 )
+  postUpdate( HOME_CINEMA_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY, 20 )
   return null
 ]
 
@@ -71,7 +82,8 @@ then
   try {
     clearBulbExclusions.apply()
     defineBulbExclusions.apply()
-    defineIlluminateAllLightTimeouts.apply()
+    defineIlluminateAllRoomsTimeouts.apply()
+    defineBrightnessBoostOnHighActivity.apply()
     postUpdate( sceneRulesReady, ON )
     logInfo( "scene", "Scene rules wait for rule system initialization..." )
   } finally {

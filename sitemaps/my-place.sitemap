@@ -25,14 +25,14 @@ sitemap my_place label="Zuhause" {
   Frame label="Konfiguration" {
   	
   	Text label="Licht Dynamik" icon="line" {
-      Switch item=autoBrightness label="Helligkeit" icon="hue-40"
+      Switch item=autoBrightness label="Helligkeit Automatik" icon="hue-40"
+      Setpoint item=minimumBrightness label="Nachtabsenkung auf [%d %%]" minValue=1 maxValue=99 step=1 visibility=[autoBrightness==ON]
       Slider item=brightness label="Statisch: [%d %%]" visibility=[autoBrightness==OFF]
-      Switch item=autoColorTemperature label="Farbtemperatur" icon="chart"
+      Switch item=autoColorTemperature label="Farbtemperatur Automatik" icon="chart"
       Slider item=colorTemperature label="Statisch: [%d %%]" visibility=[autoColorTemperature==OFF]
   	}
   	
   	Text label="Kochzeiten" icon="clock-on" {
-      Setpoint item=cookingStart label="Anfang [%2d:00 Uhr]" minValue=0 maxValue=23 step=1
       Setpoint item=cookingEnd label="Ende [%2d:00 Uhr]" minValue=1 maxValue=24 step=1
   	}
   	

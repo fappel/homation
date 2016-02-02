@@ -12,6 +12,7 @@ Items {
   activeScene : strategy = everyChange, restoreOnStartup
   brightness : strategy = everyChange
   autoBrightness : strategy = everyChange, restoreOnStartup
+  minimumBrightness : strategy = everyChange, restoreOnStartup
   colorTemperature : strategy = everyChange
   autoColorTemperature : strategy = everyChange, restoreOnStartup
   cookingStart : strategy = everyChange, restoreOnStartup

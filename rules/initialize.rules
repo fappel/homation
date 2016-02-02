@@ -83,6 +83,9 @@ val Functions$Function0 initialize = [|
   if( activeScene.lastUpdate == null ) {
     postUpdate( activeScene, "STANDARD" )
   }
+  if( minimumBrightness.lastUpdate == null ) {
+  	postUpdate( minimumBrightness, 5 )
+  }
   postUpdate( illuminateAllRoomsTimeout, 0 )
   postUpdate( activityRate, 100 )
   postUpdate( autoSwitchOffHallLightTimeoutValue, 0 )

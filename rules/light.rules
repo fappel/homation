@@ -9,6 +9,7 @@ import java.lang.*
 import java.util.concurrent.locks.*
 
 val Lock lock = new ReentrantLock()
+var int colorTemperatureSettingRepetitions = 0
 
 val Functions$Function1 mustIlluminate = [ GroupItem room |
   var roomSwitch = room.members.get( 0 ) as GroupItem
@@ -75,7 +76,14 @@ val Functions$Function2 brightnessProvider = [ GroupItem room, DimmerItem item |
   {
   	return Integer::valueOf( 99 )
   }
-  return ( brightness.state as DecimalType ).intValue()
+  var result = ( brightness.state as DecimalType ).intValue()
+  var scene = sceneSelection.members.get( 0 ) as GroupItem
+  var brightnessBoost = ( scene.members.get( 2 ).state as DecimalType ).intValue()
+  var activity = ( activityRate.state as DecimalType ).intValue()
+  if( activity > 50 ) {
+  	result = Math::min( result + brightnessBoost, 99 )
+  } 
+  return result
 ]
 
 val Functions$Function2 adjustBrightness = [ GroupItem room, Functions$Function2 brightnessProvider |
@@ -99,7 +107,7 @@ val Functions$Function2 colorTemperatureProvider = [ GroupItem room, DimmerItem 
   return ( colorTemperature.state as DecimalType ).intValue()
 ]
 
-val Functions$Function2 adjustColorTemperature = [ GroupItem room, Functions$Function2 colorTemperatureProvider |
+val Functions$Function3 adjustColorTemperature = [ GroupItem room, Functions$Function2 colorTemperatureProvider, boolean force |
   if( !activeRoom.state.equals( room.name ) ) { return null }
   var roomSwitch = room.members.get( 0 ) as GroupItem
   var temperatureDimmer = room.members.get( 1 ) as GroupItem
@@ -107,7 +115,8 @@ val Functions$Function2 adjustColorTemperature = [ GroupItem room, Functions$Fun
   roomSwitch.members.forEach[ item | isOn.add( item.state == ON ) ]
   temperatureDimmer.members.forEach[ item |
     var int temperatureValue = ( colorTemperatureProvider.apply( room, item ) as Integer ).intValue()
-    if( isOn.remove( 0 ) == true && ( item.state as DecimalType ).intValue() != temperatureValue ) {
+    var switchedOn = isOn.remove( 0 ) == true
+    if( switchedOn && force || switchedOn && ( item.state as DecimalType ).intValue() != temperatureValue ) {
       logInfo( "light", "  set color temperature of " + item.name + " to " + temperatureValue )
       var PercentType percentage = new PercentType( temperatureValue ) 
       item.sendCommand( percentage )
@@ -188,6 +197,7 @@ then
         if( mustIlluminate.apply( room ) as Boolean ) {
           initializeIlluminateAllRoomsTimeout.apply()
           switchRoomLight.apply( room, ON, bulbSwitchStateProvider )
+          colorTemperatureSettingRepetitions = 2
         }
       ]
 
@@ -209,6 +219,7 @@ then
         ROOMS.members.forEach[ room |
           if( mustIlluminate.apply( room ) as Boolean ) {
             switchRoomLight.apply( room, ON, bulbSwitchStateProvider )
+            colorTemperatureSettingRepetitions = 2
           }
         ]
         ROOMS.members.forEach[ room |
@@ -220,7 +231,9 @@ then
           ROOMS.members.forEach[ room | adjustBrightness.apply( room, brightnessProvider ) ]
         }
         if( colorTemperature.state != Undefined ) {
-          ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
+          val force = colorTemperatureSettingRepetitions > 0
+          ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider, force ) ]
+          colorTemperatureSettingRepetitions = Math::max( 0, colorTemperatureSettingRepetitions - 1 )
         }
         switchOffActiveRoomLightsOnTimeout.apply()
         updateIlluminateAllRoomsTimeout.apply()    
@@ -239,8 +252,9 @@ then
     lock.lock
     try {
       if( autoBrightness.state == ON ) {
+      	var minimum = ( minimumBrightness.state as DecimalType ).intValue()
         var factor = Math::min( 3.33, Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 51.85 ) ) )
-        var value = Math::max( 5, Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 18 ) * factor ), 100.0 ) ).intValue()
+        var value = Math::max( minimum, Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 18 ) * factor ), 99.0 ) ).intValue()
         if( brightness.state != value ) {
           logInfo( "light", "Update Brightness: " + value )
           postUpdate( brightness, value )
@@ -275,7 +289,7 @@ then
     try {
       if( autoColorTemperature.state == ON ) {
         var factor = Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 31 ) )
-        var value = Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 7 ) * factor ), 100.0 )
+        var value = Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 7 ) * factor ), 99.0 )
         var temperature = ( 100.0 - Math::max( 0.0, value ) ).intValue()
         if( colorTemperature.state != temperature ) {  	
           logInfo( "light", "Update Color Temperature: " + temperature )
@@ -295,7 +309,7 @@ then
   if( initialized.state == ON ) {
     lock.lock
     try {
-      ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider ) ]
+      ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider, true ) ]
     } finally {
       lock.unlock	
     }
