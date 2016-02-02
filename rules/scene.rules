@@ -46,11 +46,15 @@ val Functions$Function0 defineIlluminateAllRoomsTimeouts = [|
 val Functions$Function0 defineBrightnessBoostOnHighActivity = [|
   SCENES.members.forEach[ sceneDefinition |
   	postUpdate( ( sceneDefinition as GroupItem ).members.get( 2 ), 0 )
+  	postUpdate( ( sceneDefinition as GroupItem ).members.get( 3 ), 101 )
   ]
   
   postUpdate( STANDARD_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY, 20 )
+  postUpdate( STANDARD_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY_THRESHOLD, 50 )
   postUpdate( COMPUTER_WORK_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY, 20 )
+  postUpdate( COMPUTER_WORK_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY_THRESHOLD, 0 )
   postUpdate( HOME_CINEMA_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY, 20 )
+  postUpdate( HOME_CINEMA_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY_THRESHOLD, 70 )
   return null
 ]
 

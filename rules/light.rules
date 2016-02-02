@@ -76,11 +76,13 @@ val Functions$Function2 brightnessProvider = [ GroupItem room, DimmerItem item |
   {
   	return Integer::valueOf( 99 )
   }
+  
   var result = ( brightness.state as DecimalType ).intValue()
   var scene = sceneSelection.members.get( 0 ) as GroupItem
   var brightnessBoost = ( scene.members.get( 2 ).state as DecimalType ).intValue()
+  var brightnessBoostThreshold = ( scene.members.get( 3 ).state as DecimalType ).intValue()
   var activity = ( activityRate.state as DecimalType ).intValue()
-  if( activity > 50 ) {
+  if( activity >= brightnessBoostThreshold ) {
   	result = Math::min( result + brightnessBoost, 99 )
   } 
   return result
@@ -289,7 +291,7 @@ then
     try {
       if( autoColorTemperature.state == ON ) {
         var factor = Math::max( 2.0, ( Math::abs( ( 10 + now.getDayOfYear ) % 366 - 183 ) / 31 ) )
-        var value = Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 7 ) * factor ), 99.0 )
+        var value = Math::min( ( ( ( sunHeight.state as DecimalType ).intValue() + 7 ) * factor ), 100.0 )
         var temperature = ( 100.0 - Math::max( 0.0, value ) ).intValue()
         if( colorTemperature.state != temperature ) {  	
           logInfo( "light", "Update Color Temperature: " + temperature )
