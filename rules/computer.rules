@@ -1,0 +1,68 @@
+import org.openhab.core.library.types.*
+import org.openhab.core.library.items.*
+import org.openhab.core.items.*
+import org.openhab.core.types.*
+
+import org.eclipse.xtext.xbase.lib.*
+
+import java.util.concurrent.locks.*
+
+import org.joda.time.*
+
+val Lock lock = new ReentrantLock()
+var DateTime lastChange = now
+
+rule "Wait for Initialization"
+when
+  System started
+then
+  lock.lock
+  try {
+    postUpdate( computerRulesReady, ON )
+    logInfo( "computer", "Computer rules wait for rule system initialization..." )
+  } finally {
+    lock.unlock	
+  }
+end
+
+rule "Computer Activation"
+when
+  Item computerIdleTime received update
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      lastChange = now
+      var newStatus = "IDLE"
+      var idleTime = ( computerIdleTime.state as DecimalType ).intValue()
+      var onlineThreshold = ( computerOnlineThreshold.state as DecimalType ).intValue()
+      var awayThreshold = ( computerAwayThreshold.state as DecimalType ).intValue()
+      if( idleTime < onlineThreshold ) {
+      	newStatus = "ONLINE"
+      } else if ( idleTime > awayThreshold ) {
+      	newStatus = "AWAY"
+      }
+      if( !computerStatus.state.equals( newStatus ) ) {
+        postUpdate( computerStatus, newStatus )
+      }
+    } finally {
+      lock.unlock	
+    }
+  }
+end
+
+rule "Computer Status AWAY Check"
+when
+  Time cron "0/10 * * * * ?"
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {  
+      if( lastChange.plusSeconds( 20 ).beforeNow ) {
+        postUpdate( computerStatus, "AWAY" )
+      }   
+    } finally {
+      lock.unlock	
+    }
+  }
+end

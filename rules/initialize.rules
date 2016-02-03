@@ -86,6 +86,13 @@ val Functions$Function0 initialize = [|
   if( minimumBrightness.lastUpdate == null ) {
   	postUpdate( minimumBrightness, 5 ) 
   }
+  if( computerOnlineThreshold.lastUpdate == null ) {
+  	postUpdate( computerOnlineThreshold, 30 )
+  }
+  if( computerAwayThreshold.lastUpdate == null ) {
+  	postUpdate( computerAwayThreshold, 120 )
+  }
+  
   postUpdate( illuminateAllRoomsTimeout, 0 )
   postUpdate( activityRate, 100 )
   postUpdate( autoSwitchOffHallLightTimeoutValue, 0 )

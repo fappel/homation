@@ -8,6 +8,7 @@ import org.eclipse.xtext.xbase.lib.*
 import java.util.concurrent.locks.*
 
 val Lock lock = new ReentrantLock()
+var String restoreSceneName = STANDARD.name
 
 val Functions$Function0 defineBulbExclusions = [|
   ROOMS.members.forEach[ roomItem |
@@ -16,8 +17,8 @@ val Functions$Function0 defineBulbExclusions = [|
     roomSwitch.members.forEach[ switchItem | ALL_OFF_BULB_EXCLUSIONS.members.add( switchItem ) ]
   ]
   
-  IDLE_PERIOD_BULB_EXCLUSIONS.members.addAll(
-  	newArrayList( switchFanLight1, switchFanLight2, switchDeskUplight, switchBedRoomCeiling, switchKitchenCeiling )
+  STANDARD_BULB_EXCLUSIONS.members.addAll(
+  	newArrayList( switchDeskUplight )
   )
 
   IDLE_PERIOD_BULB_EXCLUSIONS.members.addAll(
@@ -29,6 +30,10 @@ val Functions$Function0 defineBulbExclusions = [|
   )
 
   COMPUTER_WORK_BULB_EXCLUSIONS.members.addAll(
+  	newArrayList( switchFanLight1, switchFanLight2, switchWindowUplight )
+  )
+
+  DESKTOP_WORK_BULB_EXCLUSIONS.members.addAll(
   	newArrayList( switchFanLight1, switchFanLight2, switchWindowUplight )
   )
   return null	
@@ -53,6 +58,8 @@ val Functions$Function0 defineBrightnessBoostOnHighActivity = [|
   postUpdate( STANDARD_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY_THRESHOLD, 50 )
   postUpdate( COMPUTER_WORK_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY, 20 )
   postUpdate( COMPUTER_WORK_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY_THRESHOLD, 0 )
+  postUpdate( DESKTOP_WORK_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY, 20 )
+  postUpdate( DESKTOP_WORK_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY_THRESHOLD, 0 )
   postUpdate( HOME_CINEMA_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY, 20 )
   postUpdate( HOME_CINEMA_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY_THRESHOLD, 70 )
   return null
@@ -107,6 +114,31 @@ then
       if( initialized.state == ON ) {
         selectScene.apply()
       }
+    } finally {
+      lock.unlock	
+    }
+  }
+end
+
+rule "Computer Activation"
+when
+  Item computerStatus changed
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if(    computerStatus.state.equals( "ONLINE" )
+      	  && !COMPUTER_WORK.name.equals( activeScene.state.toString ) )
+      {
+      	restoreSceneName = if( activeScene.state == Undefined ) { STANDARD.name } else { activeScene.state.toString }
+      	postUpdate( activeScene, COMPUTER_WORK.name )
+      }
+      if(    computerStatus.state.equals( "AWAY" )
+      	  && !STANDARD.name.equals( activeScene.state.toString )
+      	  && COMPUTER_WORK.name.equals( activeScene.state.toString ) )
+      {
+      	postUpdate( activeScene, restoreSceneName )
+      } 
     } finally {
       lock.unlock	
     }

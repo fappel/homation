@@ -5,6 +5,7 @@ Group INITIALIZATION
   Switch motionRulesReady (INITIALIZATION)
   Switch initializeRulesReady (INITIALIZATION)
   Switch sceneRulesReady (INITIALIZATION)
+  Switch computerRulesReady (INITIALIZATION)
   
 Switch initialized
 
@@ -182,10 +183,21 @@ Group SCENES
     Number COMPUTER_WORK_ILLUMINATE_ALL_ROOMS_TIMEOUT (COMPUTER_WORK)
     Number COMPUTER_WORK_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY (COMPUTER_WORK)
     Number COMPUTER_WORK_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY_THRESHOLD (COMPUTER_WORK)
+  Group DESKTOP_WORK (SCENES)
+    Group DESKTOP_WORK_BULB_EXCLUSIONS (DESKTOP_WORK)
+    Number DESKTOP_WORK_ILLUMINATE_ALL_ROOMS_TIMEOUT (DESKTOP_WORK)
+    Number DESKTOP_WORK_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY (DESKTOP_WORK)
+    Number DESKTOP_WORK_BRIGHTNESS_BOOST_ON_HIGH_ACTIVITY_THRESHOLD (DESKTOP_WORK)
  
 String activeScene
 Group sceneSelection
 Number illuminateAllRoomsTimeout
+
+/* Computer */
+String computerStatus
+Number computerIdleTime
+Number computerOnlineThreshold
+Number computerAwayThreshold
 
 /* Configuration */
 Number cookingStart

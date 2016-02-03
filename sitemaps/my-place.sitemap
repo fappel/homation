@@ -3,7 +3,7 @@ sitemap my_place label="Zuhause" {
   Frame label="Kontrollzentrum" {
   	Text item=activeRoom label="Aktives Zimmer [%s]" icon="info"
   	Text item=activityRate label="Aktivitätsrate [%.0f %%]" icon="line"
-    Selection item=activeScene label="Szenen" icon="sofa" mappings=[ "ALL_OFF"="Alles Aus", "STANDARD"="Standard", "IDLE_PERIOD"="Ruhezeit", "HOME_CINEMA"="Heimkino", "COMPUTER_WORK"="Arbeiten am Rechner" ]
+    Selection item=activeScene label="Szenen" icon="sofa" mappings=[ "ALL_OFF"="Alles Aus", "STANDARD"="Standard", "IDLE_PERIOD"="Ruhezeit", "HOME_CINEMA"="Heimkino", "COMPUTER_WORK"="Arbeiten am Rechner", "DESKTOP_WORK"="Schreibtischarbeit" ]
   }
 
   Frame label="Räume" {
@@ -43,9 +43,14 @@ sitemap my_place label="Zuhause" {
   	
   	Text label="Lichtabschaltung" icon="clock-on" {
       Switch item=autoSwitchOffBedRoomLight label="Schlafzimmer" icon="bedroom"
-      Setpoint item=autoSwitchOffBedRoomLightTimeout label="Ausschalten nach [%d] Sekunden" visibility=[autoSwitchOffBedRoomLight==ON] minValue=25 maxValue=120 step=1 icon="clock-on"
+      Setpoint item=autoSwitchOffBedRoomLightTimeout label="Ausschalten nach [%d Sek.]" visibility=[autoSwitchOffBedRoomLight==ON] minValue=25 maxValue=120 step=1 icon="clock-on"
       Switch item=autoSwitchOffHallLight label="Flur" icon="corridor"
-      Setpoint item=autoSwitchOffHallLightTimeout label="Ausschalten nach [%d] Sekunden" visibility=[autoSwitchOffHallLight==ON] minValue=25 maxValue=120 step=1 icon="clock-on"
+      Setpoint item=autoSwitchOffHallLightTimeout label="Ausschalten nach [%d Sek.]" visibility=[autoSwitchOffHallLight==ON] minValue=25 maxValue=120 step=1 icon="clock-on"
+  	}
+  	
+  	Text label="Computer Inaktivität" icon="computer" {
+      Setpoint item=computerOnlineThreshold label="Inaktiv nach [%d Sek.]" minValue=10 maxValue=60 step=5
+      Setpoint item=computerAwayThreshold label="Beleuchtung aus nach [%d Sek.]" minValue=70 maxValue=730 step=30
   	}
   	
   	Text label="Helligkeits Schwellwerte" icon="sun_clouds" {
