@@ -6,6 +6,7 @@ Group INITIALIZATION
   Switch initializeRulesReady (INITIALIZATION)
   Switch sceneRulesReady (INITIALIZATION)
   Switch computerRulesReady (INITIALIZATION)
+  Switch tvRulesReady (INITIALIZATION)
   
 Switch initialized
 
@@ -198,6 +199,9 @@ String computerStatus
 Number computerIdleTime
 Number computerOnlineThreshold
 Number computerAwayThreshold
+
+/* TV */
+Switch tvPower {samsungtv="ON:livingroom:KEY_POWERON, OFF:livingroom:KEY_POWEROFF",nh="192.168.0.14:55000:2000"}
 
 /* Configuration */
 Number cookingStart

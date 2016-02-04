@@ -1,0 +1,32 @@
+import org.openhab.core.library.types.*
+
+import java.util.concurrent.locks.*
+
+val Lock lock = new ReentrantLock()
+
+rule "Wait for Initialization"
+when
+  System started
+then
+  lock.lock
+  try {
+    postUpdate( tvRulesReady, ON )
+    logInfo( "tv", "TV rules wait for rule system initialization..." )
+  } finally {
+    lock.unlock	
+  }
+end
+
+rule "TV Power Change"
+when
+  Item tvPower changed
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      logInfo( "tv", "TV has been switched " + tvPower.state.toString )
+    } finally {
+      lock.unlock	
+    }
+  }
+end

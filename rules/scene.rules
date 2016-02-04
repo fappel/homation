@@ -114,6 +114,11 @@ then
       if( initialized.state == ON ) {
         selectScene.apply()
       }
+      if(    !COMPUTER_WORK.name.equals( activeScene.state.toString )
+      	  && !HOME_CINEMA.name.equals( activeScene.state.toString ) )
+      {
+      	restoreSceneName = activeScene.state.toString
+      }
     } finally {
       lock.unlock	
     }
@@ -137,6 +142,43 @@ then
       	  && !STANDARD.name.equals( activeScene.state.toString )
       	  && COMPUTER_WORK.name.equals( activeScene.state.toString ) )
       {
+        if( COMPUTER_WORK.name.equals( restoreSceneName ) ) {
+      	  restoreSceneName = STANDARD.name      	
+      	}
+      	postUpdate( activeScene, restoreSceneName )
+      } 
+    } finally {
+      lock.unlock	
+    }
+  }
+end
+
+rule "TV Activation"
+when
+  Item tvPower changed
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if(    tvPower.state == ON
+      	  && !HOME_CINEMA.name.equals( activeScene.state.toString ) )
+      {
+        if( COMPUTER_WORK.name.equals( activeScene.state.toString ) ) {
+          restoreSceneName = HOME_CINEMA.name
+        } else {
+          restoreSceneName = if( activeScene.state == Undefined ) { STANDARD.name } else { activeScene.state.toString }
+      	  postUpdate( activeScene, HOME_CINEMA.name )
+        }
+      }
+      if(    tvPower.state == OFF
+      	  && !STANDARD.name.equals( activeScene.state.toString )
+      	  && HOME_CINEMA.name.equals( activeScene.state.toString ) )
+      {
+      	if(    HOME_CINEMA.name.equals( restoreSceneName )
+            || COMPUTER_WORK.name.equals( restoreSceneName ) && computerStatus.state.equals( "AWAY" ) )
+        {
+      	  restoreSceneName = STANDARD.name      	
+        }
       	postUpdate( activeScene, restoreSceneName )
       } 
     } finally {
