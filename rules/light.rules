@@ -27,40 +27,47 @@ val Functions$Function0 initialize = [|
 ]
 
 val Functions$Function2 mustIlluminate = [ GroupItem room, Map bulbSwitchStates |
-  var roomSwitch = room.members.get( 0 ) as GroupItem
-  var motion = room.members.get( 3 ) as ContactItem
+  if(    !activeRoom.state.equals( room.name ) 
+  	  && ( illuminateAllRoomsTimeout.state as DecimalType ).intValue() <= 0
+  	  && ( room.members.get( 3 ) as ContactItem ).state == CLOSED )
+  {
+  	return false
+  }
+  
   var lux = room.members.get( 4 ).state
-  var luxThreshold = ( room.members.get( 5 ).state as DecimalType ).intValue()
-  var allRoomsTimeout = ( illuminateAllRoomsTimeout.state as DecimalType ).intValue()
+  if(    lux != Uninitialized 
+  	  && lux > ( room.members.get( 5 ).state as DecimalType ).intValue() )
+  {
+  	return false
+  }
+
   val isOff = newArrayList( true )
   val roomSwitchStates = bulbSwitchStates.get( room.name ) as Map
-  roomSwitch.members.forEach[ item |
+  ( room.members.get( 0 ) as GroupItem ).members.forEach[ item |
   	var state = roomSwitchStates.get( item.name ) as OnOffType
     isOff.set( 0, isOff.get( 0 ) && ( state == Uninitialized || state == OFF ) )
   ]
-  return    ( activeRoom.state.equals( room.name ) || motion.state == OPEN || allRoomsTimeout > 0 )  
-         && isOff.get( 0 ) 
-         && ( lux == Uninitialized || lux <= luxThreshold )
+  return isOff.get( 0 )
 ]
 
 val Functions$Function2 mustDarken = [ GroupItem room, Map bulbSwitchStates |
-  var roomSwitch = room.members.get( 0 ) as GroupItem
-  var motion = room.members.get( 3 ) as ContactItem
-  var lux = room.members.get( 4 ).state
-  var luxThreshold = ( room.members.get( 6 ).state as DecimalType ).intValue()
-  var allRoomsTimeout = ( illuminateAllRoomsTimeout.state as DecimalType ).intValue()
-  val isOn = newArrayList( false )
   val roomSwitchStates = bulbSwitchStates.get( room.name ) as Map
-  roomSwitch.members.forEach[ item |
-  	var state = roomSwitchStates.get( item.name ) as OnOffType
-  	isOn.set( 0, isOn.get( 0 ) || state == ON )
+  val isOn = newArrayList( false )
+  ( room.members.get( 0 ) as GroupItem ).members.forEach[ item |
+  	isOn.set( 0, isOn.get( 0 ) || roomSwitchStates.get( item.name ) as OnOffType == ON )
   ]
+  if( !isOn.get( 0 ) ) {
+  	return false
+  }
+
+  var lux = room.members.get( 4 ).state
+  if( lux != Uninitialized && lux > ( room.members.get( 6 ).state as DecimalType ).intValue() ) {
+  	return true
+  }
+
   return    !activeRoom.state.equals( room.name ) 
-         && motion.state == CLOSED
-         && isOn.get( 0 )
-         && allRoomsTimeout == 0
-         ||    ( lux != Uninitialized && lux > luxThreshold )
-            && isOn.get( 0 )
+         && ( room.members.get( 3 ) as ContactItem ).state == CLOSED
+         && ( illuminateAllRoomsTimeout.state as DecimalType ).intValue() == 0
 ]
 
 val Functions$Function3 bulbSwitchStateProvider = [ GroupItem room, SwitchItem item, OnOffType switchState |
@@ -86,8 +93,7 @@ val Functions$Function4 switchRoomLight = [ GroupItem room, OnOffType switchStat
 val Functions$Function1 applySwitchStates = [ Map bulbSwitchStates |
   ROOMS.members.forEach[ room |
   	val roomSwitches = bulbSwitchStates.get( room.name ) as Map
-  	var roomSwitch = ( room as GroupItem ).members.get( 0 ) as GroupItem
-  	roomSwitch.members.forEach[ item |
+  	( ( room as GroupItem ).members.get( 0 ) as GroupItem ).members.forEach[ item |
   	  var bulbSwitch = item as SwitchItem
       var state = roomSwitches.get( bulbSwitch.name ) as OnOffType
       if( bulbSwitch.state != state ) {
@@ -118,8 +124,7 @@ val Functions$Function2 brightnessProvider = [ GroupItem room, DimmerItem item |
   var scene = sceneSelection.members.get( 0 ) as GroupItem
   var brightnessBoost = ( scene.members.get( 2 ).state as DecimalType ).intValue()
   var brightnessBoostThreshold = ( scene.members.get( 3 ).state as DecimalType ).intValue()
-  var activity = ( activityRate.state as DecimalType ).intValue()
-  if( activity >= brightnessBoostThreshold ) {
+  if( ( activityRate.state as DecimalType ).intValue() >= brightnessBoostThreshold ) {
   	result = Math::min( result + brightnessBoost, 99 )
   } 
   return result
@@ -235,9 +240,9 @@ then
 
       ROOMS.members.forEach[ room |
         if( mustIlluminate.apply( room, bulbSwitchStates ) as Boolean ) {
-          initializeIlluminateAllRoomsTimeout.apply()
           switchRoomLight.apply( room, ON, bulbSwitchStates, bulbSwitchStateProvider )
           applySwitchStates.apply( bulbSwitchStates )
+          initializeIlluminateAllRoomsTimeout.apply()
           colorTemperatureSettingRepetitions = 2
         }
       ]
@@ -249,9 +254,9 @@ then
   }
 end
 
-rule "Periodical Bulb Updates"
+rule "Periodical Bulb Switch Updates"
 when
-  Time cron "0/2 * * * * ?"
+  Time cron "0/4 * * * * ?"
 then
   if( initialized.state == ON ) {
     lock.lock
@@ -268,18 +273,55 @@ then
         }
       ]
       applySwitchStates.apply( bulbSwitchStates )
+    } finally {
+      lock.unlock	
+    }
+  }
+end
 
+rule "Periodical Bulb Brightness Updates"
+when
+  Time cron "0/6 * * * * ?"
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
       if( brightness.state != Undefined ) {
         ROOMS.members.forEach[ room | adjustBrightness.apply( room, brightnessProvider ) ]
       }
+    } finally {
+      lock.unlock	
+    }
+  }
+end
+
+rule "Periodical Bulb Color Temperature Updates"
+when
+  Time cron "0/6 * * * * ?"
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
       if( colorTemperature.state != Undefined ) {
         val force = colorTemperatureSettingRepetitions > 0
         ROOMS.members.forEach[ room | adjustColorTemperature.apply( room, colorTemperatureProvider, force ) ]
         colorTemperatureSettingRepetitions = Math::max( 0, colorTemperatureSettingRepetitions - 1 )
       }
+    } finally {
+      lock.unlock	
+    }
+  }
+end
 
+rule "Periodical Timeout Updates"
+when
+  Time cron "0/2 * * * * ?"
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
       switchOffActiveRoomLightsOnTimeout.apply()
-      updateIlluminateAllRoomsTimeout.apply()    
+      updateIlluminateAllRoomsTimeout.apply()
     } finally {
       lock.unlock	
     }

@@ -30,7 +30,7 @@ end
 
 rule "Set Sun and Dawn States"
 when
-  Time cron "/30 * * * * ?"
+  Time cron "/50 * * * * ?"
 //  Time cron "/1 * * * * ?"
 then
   if( initialized.state == ON ) {

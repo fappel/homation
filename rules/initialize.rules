@@ -118,7 +118,7 @@ end
 
 rule "Initialization Verification"
 when
-  Time cron "0/2 * * * * ?"
+  Time cron "0/15 * * * * ?"
 then
   if( initializeRulesReady.state == ON ) { 
     lock.lock

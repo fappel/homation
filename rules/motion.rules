@@ -14,6 +14,7 @@ val Lock lock = new ReentrantLock()
 val List motionActivations = newArrayList()
 
 val Functions$Function1 mustActivateRoom = [ GroupItem room |
+  if( activeRoom.state.equals( room.name ) ) { return false }
   val allOthersClosed = newArrayList( true )
   ROOMS.members.forEach[ otherRoom |
   	if( otherRoom != room ) {
@@ -21,9 +22,7 @@ val Functions$Function1 mustActivateRoom = [ GroupItem room |
       allOthersClosed.set( 0, allOthersClosed.get( 0 ) && otherRoomClosed )
   	}
   ]
-  return    !activeRoom.state.equals( room.name )
-         && ( room as GroupItem ).members.get( 3 ).state == OPEN
-         && allOthersClosed.get( 0 )
+  return allOthersClosed.get( 0 ) && ( room as GroupItem ).members.get( 3 ).state == OPEN
 ]
 
 val Functions$Function1 updateRoomActivation = [ Functions$Function1 mustActivateRoom |
@@ -179,12 +178,25 @@ end
 
 rule "Activation Update"
 when
-  Time cron "0/2 * * * * ?"
+  Time cron "0/6 * * * * ?"
 then
   if( initialized.state == ON ) {
     lock.lock
     try {
       updateRoomActivation.apply( mustActivateRoom )
+    } finally {
+      lock.unlock	
+    }
+  }
+end
+
+rule "Motion Activation States Update"
+when
+  Time cron "0/2 * * * * ?"
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
       updateMotionActivations.apply( motionActivations ) as List
     } finally {
       lock.unlock	
