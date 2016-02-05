@@ -155,12 +155,12 @@ end
 
 rule "TV Activation"
 when
-  Item tvPower changed
+  Item tvStatus changed
 then
   if( initialized.state == ON ) {
     lock.lock
     try {
-      if(    tvPower.state == ON
+      if(    tvStatus.state == ON
       	  && !HOME_CINEMA.name.equals( activeScene.state.toString ) )
       {
         if( COMPUTER_WORK.name.equals( activeScene.state.toString ) ) {
@@ -170,19 +170,19 @@ then
       	  postUpdate( activeScene, HOME_CINEMA.name )
         }
       }
-      if(    tvPower.state == OFF
+      if(    tvStatus.state == OFF
       	  && !STANDARD.name.equals( activeScene.state.toString )
       	  && HOME_CINEMA.name.equals( activeScene.state.toString ) )
       {
-      	if(    HOME_CINEMA.name.equals( restoreSceneName )
+        if(    HOME_CINEMA.name.equals( restoreSceneName )
             || COMPUTER_WORK.name.equals( restoreSceneName ) && computerStatus.state.equals( "AWAY" ) )
         {
       	  restoreSceneName = STANDARD.name      	
         }
-      	postUpdate( activeScene, restoreSceneName )
-      } 
+        postUpdate( activeScene, restoreSceneName )
+      }
     } finally {
-      lock.unlock	
+      lock.unlock
     }
   }
 end
