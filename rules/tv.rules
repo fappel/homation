@@ -54,7 +54,7 @@ then
     lock.lock
     try {
       if( tvStatus.state == ON ) {
-        createTimer( now.plusSeconds( 4 ) ) [|
+        createTimer( now.plusSeconds( 10 ) ) [|
           if( tvPower.state == OFF ) {
             logInfo( "tv", "TV has been switched off" )
   	        postUpdate( tvStatus, OFF )
@@ -75,10 +75,10 @@ then
   	logInfo( "tv", "Playstation has been switched on" )
     lock.lock
     try {
-      if( tvStatus.state == ON ) {
+      if( tvStatus.state == ON && usePS4.state == OFF ) {
         logInfo( "tv", "Switch TV source to Playstation" )
 	    usePs4AsTvSource.apply( OFF )
-        createTimer( now.plusSeconds( 4 ) ) [|
+        createTimer( now.plusSeconds( 2 ) ) [|
 	      usePs4AsTvSource.apply( ON )
         ]
       }
@@ -98,7 +98,7 @@ then
       if( playStationStatus.state == ON ) {
         logInfo( "tv", "Switch TV source to Playstation" )
         usePs4AsTvSource.apply( OFF )
-        createTimer( now.plusSeconds( 4 ) ) [|
+        createTimer( now.plusSeconds( 1 ) ) [|
           usePs4AsTvSource.apply( ON )
         ]
       }
@@ -108,18 +108,25 @@ then
   }
 end
 
-rule "PS4 or TV Deactivation"
+rule "PS4 Deactivation"
 when
   Item playStationStatus changed from ON to OFF
 then
   if( initialized.state == ON ) {
-  	logInfo( "tv", "Playstation has been switched off" )
     lock.lock
     try {
-      if( tvStatus.state == ON && usePS4.state == ON ) {
-        logInfo( "tv", "Switch TV source to television" )
-	    usePs4AsTvSource.apply( OFF )
-      }
+      createTimer( now.plusSeconds( 10 ) ) [|
+        if( playStationStatus.state == OFF ) {
+          logInfo( "tv", "Playstation has been switched off" )
+          if( tvStatus.state == ON && usePS4.state == ON ) {
+            logInfo( "tv", "Switch TV source to television" )
+            usePs4AsTvSource.apply( OFF )
+          }
+          if( tvStatus.state == OFF ) {
+          	postUpdate( usePS4, OFF )
+          }
+        }
+      ]
     } finally {
       lock.unlock
     }

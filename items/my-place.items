@@ -201,9 +201,9 @@ Number computerOnlineThreshold
 Number computerAwayThreshold
 
 /* TV */
-Switch tvPower {samsungtv="ON:livingroom:KEY_POWERON, OFF:livingroom:KEY_POWEROFF", nh="192.168.0.14:55000:2000"}
+Switch tvPower { exec="<[/bin/sh@@-c@@ping -c 1 192.168.0.14 | grep \"packets transmitted\" | sed -e \"s/.*1 received.*/ON/\" -e \"s/.*0 received.*/OFF/\":5000:REGEX((.*))]" }
 Switch tvStatus
-Switch playStationStatus { exec="<[/bin/sh@@-c@@ping -c 1 192.168.0.16 | grep \"packets transmitted\" | sed -e \"s/.*1 received.*/ON/\" -e \"s/.*0 received.*/OFF/\":30000:REGEX((.*))]" }
+Switch playStationStatus { exec="<[/bin/sh@@-c@@ping -c 1 192.168.0.16 | grep \"packets transmitted\" | sed -e \"s/.*1 received.*/ON/\" -e \"s/.*0 received.*/OFF/\":5000:REGEX((.*))]" }
 Switch sourceSelect {samsungtv="ON:livingroom:KEY_SOURCE, OFF:livingroom:KEY_SOURCE"}
 Switch usePS4 {samsungtv="ON:livingroom:KEY_DOWN, OFF:livingroom:KEY_TV"}
 
