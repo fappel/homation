@@ -21,6 +21,7 @@ then
   lock.lock
   try {
   	postUpdate( tvStatus, OFF )
+  	postUpdate( tvPower, OFF )
   	postUpdate( usePS4, OFF )
     postUpdate( tvRulesReady, ON )
     logInfo( "tv", "TV rules wait for rule system initialization..." )
@@ -54,7 +55,7 @@ then
     lock.lock
     try {
       if( tvStatus.state == ON ) {
-        createTimer( now.plusSeconds( 10 ) ) [|
+        createTimer( now.plusSeconds( 30 ) ) [|
           if( tvPower.state == OFF ) {
             logInfo( "tv", "TV has been switched off" )
   	        postUpdate( tvStatus, OFF )
@@ -98,7 +99,7 @@ then
       if( playStationStatus.state == ON ) {
         logInfo( "tv", "Switch TV source to Playstation" )
         usePs4AsTvSource.apply( OFF )
-        createTimer( now.plusSeconds( 1 ) ) [|
+        createTimer( now.plusSeconds( 2 ) ) [|
           usePs4AsTvSource.apply( ON )
         ]
       }
@@ -115,7 +116,7 @@ then
   if( initialized.state == ON ) {
     lock.lock
     try {
-      createTimer( now.plusSeconds( 10 ) ) [|
+      createTimer( now.plusSeconds( 30 ) ) [|
         if( playStationStatus.state == OFF ) {
           logInfo( "tv", "Playstation has been switched off" )
           if( tvStatus.state == ON && usePS4.state == ON ) {
