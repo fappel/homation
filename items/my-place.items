@@ -134,16 +134,16 @@ Number activityRate
     Number kitchenBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorKitchen) {zwave="2:command=battery"}
 
   Group sensorLivingRoom "Wohnzimmer Sensordaten" <temperature> (sensor,livingRoom)
-    Contact livingRoomMotion "Bewegungsmelder [%s]"	<present> (sensorLivingRoom,motion,LIVING_ROOM) {zwave="3:command=basic"}
-    Number livingRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorLivingRoom,LIVING_ROOM) {zwave="3:command=sensor_multilevel,sensor_type=3"}
-    Number livingRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorLivingRoom) {zwave="3:command=sensor_multilevel,sensor_type=1"}
-    Number livingRoomBattery "Batterie Ladestatus: [%d %%]"	<energy> (sensorLivingRoom) {zwave="3:command=battery"}
+    Contact livingRoomMotion "Bewegungsmelder [%s]"	<present> (sensorLivingRoom,motion,LIVING_ROOM) {zwave="7:command=basic"}
+    Number livingRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorLivingRoom,LIVING_ROOM) {zwave="7:command=sensor_multilevel,sensor_type=3"}
+    Number livingRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorLivingRoom) {zwave="7:command=sensor_multilevel,sensor_type=1"}
+    Number livingRoomBattery "Batterie Ladestatus: [%d %%]"	<energy> (sensorLivingRoom) {zwave="7:command=battery"}
 
   Group sensorBedRoom "Schlafzimmer Sensordaten" <temperature> (sensor,bedRoom)
-    Contact bedRoomMotion "Bewegungsmelder [%s]" <present> (sensorBedRoom,motion,BED_ROOM,autoSwitchOffBedRoom) {zwave="7:command=basic"}
-    Number bedRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorBedRoom,BED_ROOM) {zwave="7:command=sensor_multilevel,sensor_type=3"}
-    Number bedRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorBedRoom) {zwave="7:command=sensor_multilevel,sensor_type=1"}
-    Number bedRoomBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorBedRoom) {zwave="7:command=battery"}
+    Contact bedRoomMotion "Bewegungsmelder [%s]" <present> (sensorBedRoom,motion,BED_ROOM,autoSwitchOffBedRoom) {zwave="3:command=basic"}
+    Number bedRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorBedRoom,BED_ROOM) {zwave="3:command=sensor_multilevel,sensor_type=3"}
+    Number bedRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorBedRoom) {zwave="3:command=sensor_multilevel,sensor_type=1"}
+    Number bedRoomBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorBedRoom) {zwave="3:command=battery"}
 
   Group sensorHall "Flur Sensordaten" <temperature> (sensor,hall)
     Contact hallMotion "Bewegungsmelder [%s]" <present> (sensorHall,motion,HALL,autoSwitchOffHall) {zwave="5:command=basic"}

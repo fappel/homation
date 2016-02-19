@@ -5,10 +5,13 @@ import org.eclipse.xtext.xbase.lib.*
 import java.util.concurrent.locks.*
 
 val Lock lock = new ReentrantLock()
+var boolean ps4Alive = false
+var int ps4OffCount = 0
+var int tvOffCount = 0
 
 val Functions$Function1 usePs4AsTvSource = [ OnOffType switchState |
   sourceSelect.sendCommand( switchState )
-  createTimer( now.plusSeconds( 2 ) ) [|
+  createTimer( now.plusSeconds( 1 ) ) [|
     usePS4.sendCommand( switchState )
   ]
   return null
@@ -37,6 +40,7 @@ then
   if( initialized.state == ON ) {
     lock.lock
     try {
+      tvOffCount = 0
       if( tvStatus.state == OFF ) {
         logInfo( "tv", "TV has been switched on" )
    	    postUpdate( tvStatus, ON )
@@ -49,18 +53,19 @@ end
 
 rule "TV Power OFF"
 when
-  Item tvPower changed from ON to OFF
+  Item tvPower received update
 then
   if( initialized.state == ON ) {
     lock.lock
     try {
-      if( tvStatus.state == ON ) {
-        createTimer( now.plusSeconds( 30 ) ) [|
-          if( tvPower.state == OFF ) {
-            logInfo( "tv", "TV has been switched off" )
-  	        postUpdate( tvStatus, OFF )
-          }
-        ]
+      if( tvPower.state == OFF ) {
+        tvOffCount = tvOffCount + 1
+      } else {
+      	tvOffCount = 0
+      }
+      if( tvStatus.state == ON && tvOffCount >= 3 && tvPower.state == OFF ) {
+        logInfo( "tv", "TV has been switched off" )
+  	    postUpdate( tvStatus, OFF )
       }
     } finally {
       lock.unlock
@@ -76,10 +81,12 @@ then
   	logInfo( "tv", "Playstation has been switched on" )
     lock.lock
     try {
+      ps4OffCount = 0
+      ps4Alive = true
       if( tvStatus.state == ON && usePS4.state == OFF ) {
         logInfo( "tv", "Switch TV source to Playstation" )
 	    usePs4AsTvSource.apply( OFF )
-        createTimer( now.plusSeconds( 2 ) ) [|
+        createTimer( now.plusSeconds( 3 ) ) [|
 	      usePs4AsTvSource.apply( ON )
         ]
       }
@@ -99,7 +106,7 @@ then
       if( playStationStatus.state == ON ) {
         logInfo( "tv", "Switch TV source to Playstation" )
         usePs4AsTvSource.apply( OFF )
-        createTimer( now.plusSeconds( 2 ) ) [|
+        createTimer( now.plusSeconds( 4 ) ) [|
           usePs4AsTvSource.apply( ON )
         ]
       }
@@ -111,23 +118,27 @@ end
 
 rule "PS4 Deactivation"
 when
-  Item playStationStatus changed from ON to OFF
+  Item playStationStatus received update
 then
   if( initialized.state == ON ) {
     lock.lock
     try {
-      createTimer( now.plusSeconds( 30 ) ) [|
-        if( playStationStatus.state == OFF ) {
-          logInfo( "tv", "Playstation has been switched off" )
-          if( tvStatus.state == ON && usePS4.state == ON ) {
-            logInfo( "tv", "Switch TV source to television" )
-            usePs4AsTvSource.apply( OFF )
-          }
-          if( tvStatus.state == OFF ) {
-          	postUpdate( usePS4, OFF )
-          }
+      if( playStationStatus.state == OFF ) {
+        ps4OffCount = ps4OffCount + 1
+      } else {
+      	ps4OffCount = 0
+      }
+      if( ps4Alive && ps4OffCount >= 3 && playStationStatus.state == OFF ) {
+        logInfo( "tv", "Playstation has been switched off" )
+        if( tvStatus.state == ON && usePS4.state == ON ) {
+          logInfo( "tv", "Switch TV source to television" )
+          usePs4AsTvSource.apply( OFF )
         }
-      ]
+        if( tvStatus.state == OFF ) {
+          postUpdate( usePS4, OFF )
+        }
+        ps4Alive = false
+      }
     } finally {
       lock.unlock
     }
