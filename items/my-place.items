@@ -7,6 +7,7 @@ Group INITIALIZATION
   Switch sceneRulesReady (INITIALIZATION)
   Switch computerRulesReady (INITIALIZATION)
   Switch tvRulesReady (INITIALIZATION)
+  Switch hifiRulesReady (INITIALIZATION)
   
 Switch initialized
 
@@ -157,6 +158,16 @@ Number activityRate
     Number bathRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorBathRoom) {zwave="6:command=sensor_multilevel,sensor_type=1"}
     Number bathRoomBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorBathRoom) {zwave="6:command=battery"}
 
+/* Power Switches */
+Switch hifiSwitch
+
+Group powerSwitch "Alle Stromschalter"
+
+  Group powerPlugHifi "Stereoanlage" <network> (powerSwitch,livingRoom)
+    Switch hifiPowerSwitch "Hifi Schalter" <socket> (powerPlugHifi) { zwave="8:command=switch_binary"} 
+    Number hifiCurrentEnergy "Hifi Verbrauch (aktuell) [%.1f W]" <energy> (powerPlugHifi) { zwave="8:command=sensor_multilevel"}
+    Number hifiTotalEnergy "Hifi Verbrauch (gesamt) [%.2f KWh]" <energy> (powerPlugHifi) { zwave="8:command=meter" }
+
 /* Scenes */
 Group SCENES
   Group ALL_OFF (SCENES)
@@ -203,9 +214,6 @@ Number computerAwayThreshold
 /* TV */
 Switch tvPower { exec="<[/bin/sh@@-c@@ping -c 1 192.168.0.14 | grep \"packets transmitted\" | sed -e \"s/.*1 received.*/ON/\" -e \"s/.*0 received.*/OFF/\":5000:REGEX((.*))]" }
 Switch tvStatus
-Switch playStationStatus { exec="<[/bin/sh@@-c@@ping -c 1 192.168.0.16 | grep \"packets transmitted\" | sed -e \"s/.*1 received.*/ON/\" -e \"s/.*0 received.*/OFF/\":5000:REGEX((.*))]" }
-Switch sourceSelect {samsungtv="ON:livingroom:KEY_SOURCE, OFF:livingroom:KEY_SOURCE"}
-Switch usePS4 {samsungtv="ON:livingroom:KEY_DOWN, OFF:livingroom:KEY_TV"}
 
 /* Configuration */
 Number cookingStart

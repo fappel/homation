@@ -4,6 +4,7 @@ sitemap my_place label="Zuhause" {
   	Text item=activeRoom label="Aktives Zimmer [%s]" icon="info"
   	Text item=activityRate label="Aktivitätsrate [%.0f %%]" icon="line"
     Selection item=activeScene label="Szenen" icon="sofa" mappings=[ "ALL_OFF"="Alles Aus", "STANDARD"="Standard", "IDLE_PERIOD"="Ruhezeit", "HOME_CINEMA"="Heimkino", "COMPUTER_WORK"="Arbeiten am Rechner", "DESKTOP_WORK"="Schreibtischarbeit" ]
+    Switch item=hifiSwitch label="Hifi Streaming" icon="network"
   }
 
   Frame label="Räume" {

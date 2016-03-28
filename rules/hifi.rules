@@ -1,0 +1,85 @@
+import org.openhab.core.library.types.*
+
+import org.eclipse.xtext.xbase.lib.*
+
+import java.util.concurrent.locks.*
+
+val Lock lock = new ReentrantLock()
+var boolean hifiActivated = false
+
+rule "Wait for Initialization"
+when
+  System started
+then
+  lock.lock
+  try {
+  	postUpdate( hifiPowerSwitch, OFF )
+  	postUpdate( hifiSwitch, OFF )
+    postUpdate( hifiRulesReady, ON )
+    logInfo( "hifi", "Hifi rules wait for rule system initialization..." )
+  } finally {
+    lock.unlock
+  }
+end
+
+rule "Hifi Activated"
+when
+  Item hifiSwitch changed from OFF to ON
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if( hifiPowerSwitch.state == OFF ) {
+   	    sendCommand( hifiPowerSwitch, ON )
+      } 
+      hifiActivated = true
+      logInfo( "hifi", "Hifi has been activated" )
+    } finally {
+      lock.unlock	
+    }
+  }
+end
+
+rule "Hifi Deactivated"
+when
+  Item hifiSwitch changed from ON to OFF
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if(    hifiPowerSwitch.state == ON
+      	  && tvStatus.state == OFF )
+      {
+   	    sendCommand( hifiPowerSwitch, OFF )
+      } 
+      hifiActivated = false
+      logInfo( "hifi", "Hifi has been deactivated" )
+    } finally {
+      lock.unlock	
+    }
+  }
+end
+
+rule "TV Activated"
+when
+  Item tvStatus changed
+then
+  if( initialized.state == ON ) {
+    lock.lock
+    try {
+      if(    tvStatus.state == ON 
+      	  && !hifiActivated )
+      {
+   	    sendCommand( hifiPowerSwitch, ON )
+        logInfo( "hifi", "TV Sound has been switched on" )
+   	  } else if(    tvStatus.state == OFF 
+      	         && !hifiActivated )
+      {
+   	    sendCommand( hifiPowerSwitch, OFF )
+        logInfo( "hifi", "TV Sound has been switched off" )
+   	  }
+    } finally {
+      lock.unlock	
+    }
+  }
+end
