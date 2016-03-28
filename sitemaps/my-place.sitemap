@@ -47,6 +47,8 @@ sitemap my_place label="Zuhause" {
       Setpoint item=autoSwitchOffBedRoomLightTimeout label="Ausschalten nach [%d Sek.]" visibility=[autoSwitchOffBedRoomLight==ON] minValue=25 maxValue=120 step=1 icon="clock-on"
       Switch item=autoSwitchOffHallLight label="Flur" icon="corridor"
       Setpoint item=autoSwitchOffHallLightTimeout label="Ausschalten nach [%d Sek.]" visibility=[autoSwitchOffHallLight==ON] minValue=25 maxValue=120 step=1 icon="clock-on"
+      Switch item=autoSwitchOffLivingRoomLight label="Wohnzimmer" icon="sofa"
+      Setpoint item=autoSwitchOffLivingRoomLightTimeout label="Ausschalten nach [%d Sek.]" visibility=[autoSwitchOffLivingRoomLight==ON] minValue=25 maxValue=120 step=1 icon="clock-on"
   	}
   	
   	Text label="Computer Inaktivität" icon="computer" {

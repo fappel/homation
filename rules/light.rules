@@ -131,19 +131,20 @@ val Functions$Function2 brightnessProvider = [ GroupItem room, DimmerItem item |
 ]
 
 val Functions$Function2 adjustBrightness = [ GroupItem room, Functions$Function2 brightnessProvider |
-  if( !activeRoom.state.equals( room.name ) ) { return null }
-  var roomSwitch = room.members.get( 0 ) as GroupItem
-  var brightnessDimmer = room.members.get( 2 ) as GroupItem
-  val isOn = newArrayList()
-  roomSwitch.members.forEach[ item | isOn.add( item.state == ON ) ]
-  brightnessDimmer.members.forEach[ item |
-  	var brightnessValue = ( brightnessProvider.apply( room, item ) as Integer ).intValue()
-  	if( isOn.remove( 0 ) == true && ( item.state as DecimalType ).intValue() != brightnessValue  ) {
-      logInfo( "light", "  set brightness of " + item.name + " to " + brightnessValue )
-      var PercentType percentage = new PercentType( brightnessValue ) 
-      item.sendCommand( percentage )
-  	} 
-  ]
+  if( activeRoom.state.equals( room.name ) || ( illuminateAllRoomsTimeout.state as DecimalType ).intValue() == 0 ) {
+    var roomSwitch = room.members.get( 0 ) as GroupItem
+    var brightnessDimmer = room.members.get( 2 ) as GroupItem
+    val isOn = newArrayList()
+    roomSwitch.members.forEach[ item | isOn.add( item.state == ON ) ]
+    brightnessDimmer.members.forEach[ item |
+  	  var brightnessValue = ( brightnessProvider.apply( room, item ) as Integer ).intValue()
+  	  if( isOn.remove( 0 ) == true && ( item.state as DecimalType ).intValue() != brightnessValue  ) {
+        logInfo( "light", "  set brightness of " + item.name + " to " + brightnessValue )
+        var PercentType percentage = new PercentType( brightnessValue ) 
+        item.sendCommand( percentage )
+      } 
+    ]
+  }
   return null
 ]
 
@@ -152,20 +153,21 @@ val Functions$Function2 colorTemperatureProvider = [ GroupItem room, DimmerItem 
 ]
 
 val Functions$Function3 adjustColorTemperature = [ GroupItem room, Functions$Function2 colorTemperatureProvider, boolean force |
-  if( !activeRoom.state.equals( room.name ) ) { return null }
-  var roomSwitch = room.members.get( 0 ) as GroupItem
-  var temperatureDimmer = room.members.get( 1 ) as GroupItem
-  val isOn = newArrayList()
-  roomSwitch.members.forEach[ item | isOn.add( item.state == ON ) ]
-  temperatureDimmer.members.forEach[ item |
-    var int temperatureValue = ( colorTemperatureProvider.apply( room, item ) as Integer ).intValue()
-    var switchedOn = isOn.remove( 0 ) == true
-    if( switchedOn && force || switchedOn && ( item.state as DecimalType ).intValue() != temperatureValue ) {
-      logInfo( "light", "  set color temperature of " + item.name + " to " + temperatureValue )
-      var PercentType percentage = new PercentType( temperatureValue ) 
-      item.sendCommand( percentage )
-  	}
-  ]
+  if( activeRoom.state.equals( room.name ) || ( illuminateAllRoomsTimeout.state as DecimalType ).intValue() >= 0 ) { 
+    var roomSwitch = room.members.get( 0 ) as GroupItem
+    var temperatureDimmer = room.members.get( 1 ) as GroupItem
+    val isOn = newArrayList()
+    roomSwitch.members.forEach[ item | isOn.add( item.state == ON ) ]
+    temperatureDimmer.members.forEach[ item |
+      var int temperatureValue = ( colorTemperatureProvider.apply( room, item ) as Integer ).intValue()
+      var switchedOn = isOn.remove( 0 ) == true
+      if( switchedOn && force || switchedOn && ( item.state as DecimalType ).intValue() != temperatureValue ) {
+        logInfo( "light", "  set color temperature of " + item.name + " to " + temperatureValue )
+        var PercentType percentage = new PercentType( temperatureValue ) 
+        item.sendCommand( percentage )
+      }
+    ]
+  }
   return null
 ]
 

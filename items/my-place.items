@@ -17,7 +17,7 @@ Number sunHeight
 /* Rooms */
 Group ROOMS
   Group KITCHEN (ROOMS)
-  Group LIVING_ROOM (ROOMS)
+  Group LIVING_ROOM (ROOMS,autoSwitchOffLivingRoom)
   Group BED_ROOM (ROOMS,autoSwitchOffBedRoom)
   Group BATH_ROOM (ROOMS)
   Group HALL (ROOMS,autoSwitchOffHall)
@@ -25,7 +25,7 @@ Group ROOMS
 String activeRoom
 
 Group kitchen "Küche" <kitchen>
-Group livingRoom "Wohnzimmer" <video>
+Group livingRoom "Wohnzimmer" <sofa>
 Group bedRoom "Schlafzimmer" <bedroom>
 Group bathRoom "Bad" <bath>
 Group hall "Flur" <corridor>
@@ -135,7 +135,7 @@ Number activityRate
     Number kitchenBattery "Batterie Ladestatus: [%d %%]" <energy> (sensorKitchen) {zwave="2:command=battery"}
 
   Group sensorLivingRoom "Wohnzimmer Sensordaten" <temperature> (sensor,livingRoom)
-    Contact livingRoomMotion "Bewegungsmelder [%s]"	<present> (sensorLivingRoom,motion,LIVING_ROOM) {zwave="7:command=basic"}
+    Contact livingRoomMotion "Bewegungsmelder [%s]"	<present> (sensorLivingRoom,motion,LIVING_ROOM,autoSwitchOffLivingRoom) {zwave="7:command=basic"}
     Number livingRoomLux "Helligkeit: [%.2f Lux]" <sun> (sensorLivingRoom,LIVING_ROOM) {zwave="7:command=sensor_multilevel,sensor_type=3"}
     Number livingRoomTemperature "Temperatur: [%.1f C]" <temperature> (sensorLivingRoom) {zwave="7:command=sensor_multilevel,sensor_type=1"}
     Number livingRoomBattery "Batterie Ladestatus: [%d %%]"	<energy> (sensorLivingRoom) {zwave="7:command=battery"}
@@ -242,4 +242,8 @@ Group AUTO_SWITCH_OFF
     Switch autoSwitchOffHallLight (autoSwitchOffHall)
     Number autoSwitchOffHallLightTimeout (autoSwitchOffHall)
     Number autoSwitchOffHallLightTimeoutValue (autoSwitchOffHall)
+  Group autoSwitchOffLivingRoom (AUTO_SWITCH_OFF)
+    Switch autoSwitchOffLivingRoomLight (autoSwitchOffLivingRoom)
+    Number autoSwitchOffLivingRoomLightTimeout (autoSwitchOffLivingRoom)
+    Number autoSwitchOffLivingRoomLightTimeoutValue (autoSwitchOffLivingRoom)
     

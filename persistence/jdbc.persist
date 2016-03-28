@@ -33,6 +33,8 @@ Items {
   autoSwitchOffBedRoomLightTimeout : strategy = everyChange, restoreOnStartup
   autoSwitchOffHallLight : strategy = everyChange, restoreOnStartup
   autoSwitchOffHallLightTimeout : strategy = everyChange, restoreOnStartup
+  autoSwitchOffLivingRoomLight : strategy = everyChange, restoreOnStartup
+  autoSwitchOffLivingRoomLightTimeout : strategy = everyChange, restoreOnStartup
   computerOnlineThreshold : strategy = everyChange, restoreOnStartup
   computerAwayThreshold : strategy = everyChange, restoreOnStartup
 }
